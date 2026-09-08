@@ -1,184 +1,168 @@
 import streamlit as st
 import time
 
-# 1. CONFIGURACIÓN DE PÁGINA CON ESTILO ULTRA-DARK PREMIUM (CSS CUSTOM)
-st.set_page_config(page_title="Atelier Engine X", page_icon="⚡", layout="wide")
+st.set_page_config(page_title="Atelier Studio DAW X", page_icon="🎚️", layout="wide")
 
+# ESTILOS AVANZADOS CSS PARA CONVERTIR STREAMLIT EN UN RACK DE AUDIO
 st.markdown("""
     <style>
-    /* Fondo oscuro cibernético de alta gama */
+    /* Estética de hardware analógico de estudio (Suno Studio Pro) */
     .stApp {
-        background: radial-gradient(circle at top, #090a0f 0%, #030406 100%);
-        color: #f1f5f9;
-        font-family: 'SF Pro Display', -apple-system, sans-serif;
+        background-color: #08090c;
+        color: #e2e8f0;
+        font-family: 'monospace', sans-serif;
     }
     
-    /* Contenedores con efecto de cristal esmerilado (Glassmorphism) */
-    .studio-panel {
-        background: rgba(18, 22, 33, 0.65);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(12px);
-        border-radius: 20px;
-        padding: 30px;
-        margin-bottom: 24px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-    }
-    
-    /* Título animado estilo Suno Next-Gen */
-    .brand-title {
-        font-size: 3.2rem;
-        font-weight: 900;
-        background: linear-gradient(135deg, #00f2fe 0%, #9b51e0 50%, #ff007f 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-align: center;
-        letter-spacing: -1px;
-        margin-bottom: 2px;
-    }
-    
-    .brand-sub {
-        text-align: center;
-        color: #64748b;
-        font-size: 1.1rem;
-        margin-bottom: 40px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-    }
-    
-    /* Botón de Generación Suprema */
-    .stButton>button {
-        background: linear-gradient(90deg, #ff007f 0%, #7928ca 50%, #00f2fe 100%) !important;
-        color: #ffffff !important;
-        font-weight: 800 !important;
-        font-size: 1.4rem !important;
-        letter-spacing: 2px;
-        border-radius: 50px !important;
-        border: none !important;
-        padding: 18px 40px !important;
-        box-shadow: 0 0 30px rgba(121, 40, 202, 0.5);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        width: 100%;
-    }
-    
-    .stButton>button:hover {
-        transform: scale(1.02);
-        box-shadow: 0 0 45px rgba(0, 242, 254, 0.8);
-    }
-    
-    /* Headers Internos estilo Rack Analógico */
-    .rack-header {
-        color: #00f2fe;
-        font-size: 1.2rem;
-        font-weight: 700;
-        letter-spacing: 1px;
-        text-transform: uppercase;
+    /* Contenedor de Rack Físico */
+    .daw-rack {
+        background: #11141a;
+        border-left: 5px solid #ff0055;
+        border-top: 1px solid #232936;
+        border-right: 1px solid #232936;
+        border-bottom: 1px solid #232936;
+        border-radius: 12px;
+        padding: 24px;
         margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
     }
     
-    /* Simulador de Ecualizador Dinámico (Animación CSS) */
-    .eq-bar-container {
+    /* Cabeceras estilo hardware con número de serie */
+    .rack-title {
+        font-size: 0.95rem;
+        color: #ff0055;
+        font-weight: bold;
+        letter-spacing: 2px;
+        margin-bottom: 15px;
+        text-transform: uppercase;
         display: flex;
-        justify-content: center;
-        align-items: flex-end;
-        height: 60px;
-        gap: 4px;
-        margin: 20px 0;
+        justify-content: space-between;
     }
-    .eq-bar {
-        width: 6px;
-        background: linear-gradient(to top, #7928ca, #00f2fe);
-        animation: bounce 1.2s ease-in-out infinite alternate;
+    
+    /* Vúmetro de Volumen Animado (LED Meter) */
+    .vu-meter {
+        display: flex;
+        height: 12px;
+        background: #1a1f2c;
         border-radius: 3px;
+        overflow: hidden;
+        margin-top: 10px;
+        border: 1px solid #000;
     }
-    @keyframes bounce {
-        0% { height: 10px; }
-        100% { height: 55px; }
+    .vu-led {
+        flex: 1;
+        margin-right: 1px;
+        background: #22c55e; /* Verde */
     }
-    /* Desfases de animación para dar realismo al espectro */
-    .b1 { animation-delay: 0.1s; } .b2 { animation-delay: 0.4s; }
-    .b3 { animation-delay: 0.2s; } .b4 { animation-delay: 0.6s; }
-    .b5 { animation-delay: 0.3s; } .b6 { animation-delay: 0.5s; }
+    .vu-led.warn { background: #eab308; } /* Amarillo */
+    .vu-led.clip { background: #ef4444; animation: flash 0.5s infinite alternate; } /* Rojo Clip */
+    
+    @keyframes flash {
+        0% { opacity: 0.3; } 100% { opacity: 1; }
+    }
+
+    /* Gran Botón Master Consolidado */
+    .stButton>button {
+        background: linear-gradient(180deg, #ff0055 0%, #990033 100%) !important;
+        color: #ffffff !important;
+        font-weight: bold !important;
+        font-size: 1.2rem !important;
+        border-radius: 8px !important;
+        border: 1px solid #ff0055 !important;
+        padding: 16px 0px !important;
+        width: 100%;
+        box-shadow: 0 4px 15px rgba(255, 0, 85, 0.4);
+    }
+    .stButton>button:hover {
+        background: #ff1a6c !important;
+        box-shadow: 0 4px 25px rgba(255, 0, 85, 0.7);
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# Encabezado Principal
-st.markdown('<p class="brand-title">🪐 ATELIER ENGINE X</p>', unsafe_allow_html=True)
-st.markdown('<p class="brand-sub">MÚSICA MULTI-GÉNERO & PROCESAMIENTO REDEFINIDO</p>', unsafe_allow_html=True)
+# Título de Consola
+st.markdown("<h2 style='text-align: center; color: #fff; letter-spacing: 3px;'>🎛️ ATELIER GENERATIVE WORKSTATION</h2>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #526484; font-size: 0.9rem; margin-bottom: 30px;'>ESTACIÓN DE CONTROL MULTIP_CANAL V1.5.5</p>", unsafe_allow_html=True)
 
-# 2. SECCIONES DEL ESTUDIO GENERATIVO
-col1, col2 = st.columns(2, gap="large")
+# DISTRIBUCIÓN EN 3 COLUMNAS COMO UN DAW TRADICIONAL
+col1, col2, col3 = st.columns([1.2, 1.2, 1], gap="medium")
 
 with col1:
-    # Módulo de Composición Avanzada
-    st.markdown('<div class="studio-panel">', unsafe_allow_html=True)
-    st.markdown('<p class="rack-header">🎹 01. CEREBRO DE COMPOSICIÓN MULTI-GÉNERO</p>', unsafe_allow_html=True)
-    prompt = st.text_area("Instrucciones de Texto (Prompt):", placeholder="Ej: Fusión de Jazz Noir, Techno Industrial y Guitarras Flamencas de tempo rápido con sub-graves masivos...")
-    genero_hibrido = st.multiselect("Combinación de Géneros Cruzados:", ["Synthwave / Cyberpunk", "Trap de Vanguardia", "Rock Sinfónico / Metal", "Orquestal Cinematic", "Melodic House / Techno", "Folk Étnico"], default=["Synthwave / Cyberpunk"])
-    st.markdown('</div>', unsafe_allow_html=True)
+    # CANAL 1: Entrada de Prompt e Instrumentación (AI STEM 1)
+    st.markdown("""
+        <div class='daw-rack'>
+            <div class='rack-title'><span>CH 01 // INSTRUMENTAL ENGINE</span><span>MODEL: V5.5</span></div>
+        </div>
+    """, unsafe_allow_html=True)
+    prompt_txt = st.text_area("Composición por Texto (Prompt):", placeholder="Ej: Ritmo de Reggaeton mezclado con guitarras de Rock Industrial, 110 BPM...", key="daw_p")
+    genero_slider = st.select_slider("Enfoque de mezcla:", options=["Puro Electrónico", "Híbrido Digital", "Balanceado", "Híbrido Acústico", "Puro Orgánico"], value="Balanceado")
     
-    # Módulo de Voces e Idiomas Globales
-    st.markdown('<div class="studio-panel">', unsafe_allow_html=True)
-    st.markdown('<p class="rack-header">🗣️ 02. MODELADO VOCAL & ACENTOS GLOBALES</p>', unsafe_allow_html=True)
-    genero_voz = st.radio("Frecuencia y Timbre:", ["Masculina (Cálida / Barítono)", "Femenina (Lírica / Soprano)"], horizontal=True)
-    acento_mundial = st.selectbox("Acento Nativo del Modelo:", ["Español Latinoamericano Pro (Ajustado)", "Español Ibérico / Castellano", "Inglés Norteamericano (Studio Raw)", "Inglés Británico (Deep Vocal)", "Acento personalizado basado en muestra"])
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Simulación de canal activo en vúmetro
+    st.markdown("""
+        <small style='color:#526484;'>SIGNAL LEVEL (INPUT):</small>
+        <div class='vu-meter'>
+            <div class='vu-led'></div><div class='vu-led'></div><div class='vu-led'></div><div class='vu-led'></div>
+            <div class='vu-led'></div><div class='vu-led'></div><div class='vu-led'></div><div class='vu-led'></div>
+            <div class='vu-led warn'></div><div class='vu-led warn'></div><div class='vu-led clip'></div>
+        </div>
+    """, unsafe_allow_html=True)
 
 with col2:
-    # Módulo de Grabación y Hardware Analógico Virtual
-    st.markdown('<div class="studio-panel">', unsafe_allow_html=True)
-    st.markdown('<p class="rack-header">🎙️ 03. INGESTA DE AUDIO & PRODUCTOR PRO</p>', unsafe_allow_html=True)
-    st.write("Sube tu propia voz grabada (Acapella) para clonarla o aplicarle ingeniería de audio profesional.")
-    archivo_usuario = st.file_uploader("Arrastra pistas .mp3 o .wav", type=["wav", "mp3"])
-    st.markdown('</div>', unsafe_allow_html=True)
+    # CANAL 2: Tratamiento Vocal y Acentos Mundiales (AI STEM 2)
+    st.markdown("""
+        <div class='daw-rack'>
+            <div class='rack-title'><span>CH 02 // VOCAL & ACCENT GATE</span><span>TRACK: ACAPELLA</span></div>
+        </div>
+    """, unsafe_allow_html=True)
+    tipo_vocal = st.radio("Frecuencia Base de Voz Neural:", ["Masculina / Barítono", "Femenina / Soprano"], horizontal=True)
+    acento_drop = st.selectbox("Algoritmo de Acento Geográfico:", ["Español Latinoamericano (Estudio)", "Español de España (Castellano)", "Inglés de EE.UU. (Radio Edit)", "Voz Clonada propia (.wav)"])
     
-    # Módulo de Efectos de Estudio Real
-    st.markdown('<div class="studio-panel">', unsafe_allow_html=True)
-    st.markdown('<p class="rack-header">🎚️ 04. CONSOLA DE MASTERIZACIÓN DIGITAL</p>', unsafe_allow_html=True)
-    reverb_val = st.slider("Espacialidad 3D (Reverb Ambiental)", 0, 100, 45, format="%d%%")
-    autotune_val = st.slider("Afinación Cuántica (Autotune Pro)", 0, 100, 25, format="%d%%")
-    st.checkbox("Cadena de Producción Analógica (Preamp Neve + Compresor SSL)", value=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Rack de Entrada Externa
+    archivo_input = st.file_uploader("Insertar Grabación Propia (Sidechain):", type=["mp3", "wav"])
+
+with col3:
+    # CANAL 3: Consola Central de Masterización (MASTER FX)
+    st.markdown("""
+        <div class='daw-rack' style='border-left: 5px solid #00ffcc;'>
+            <div class='rack-title' style='color: #00ffcc;'><span>MASTER RACK // BUS FX</span><span>ANALOG HARDWARE</span></div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Controles granulares tipo potenciómetro (Sliders verticales / horizontales estilizados)
+    reverb_fader = st.slider("Procesador de Reverb (Ambiente)", 0, 100, 30, format="%d dB")
+    tune_fader = st.slider("Corrección Cuántica (Autotune)", 0, 100, 15, format="%d%%")
+    
+    st.markdown("<small style='color: #00ffcc;'>PRO TOOLS ACTIVADOS:</small>", unsafe_allow_html=True)
+    st.checkbox("Compresor de Bus SSL (Pegada Comercial)", value=True)
+    st.checkbox("Separación de Pistas (Stem Splitter)", value=False)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# 3. LANZAMIENTO DEL MOTOR DE AUDIO
-if st.button("🚀 CREAR MASTER SUPREMO", use_container_width=True):
+# BOTÓN DE EJECUCIÓN MULTI-PROCESO
+if st.button("🎚️ COMPILAR Y CONFIGURAR MASTER", use_container_width=True):
     with st.spinner(""):
-        # Contenedor de estado estilizado
-        status_box = st.empty()
-        progreso = st.progress(0)
+        status_log = st.empty()
+        monitor_carga = st.progress(0)
         
-        etapas = [
-            "Iniciando algoritmos de síntesis cruzada...",
-            "Generando instrumentación basada en Prompt...",
-            "Tratando voces nativas con filtros de acento...",
-            "Inyectando compresión analógica y ecualización...",
-            "Finalizando Master comercial estéreo..."
+        tareas = [
+            "Inyectando algoritmos en BUS CH01...",
+            "Sincronizando modulación de acento vocal en CH02...",
+            "Ejecutando rack de compresión en MASTER BUS...",
+            "Alineando tiempos de fase (Time-aligning WAV stems)..."
         ]
         
-        for idx, etapa in enumerate(etapas):
-            status_box.markdown(f"<p style='text-align:center; color:#00f2fe; font-size:1.1rem;'>⚡ <b>{etapa}</b></p>", unsafe_allow_html=True)
-            progreso.progress((idx + 1) * 20)
-            time.sleep(1.0)
+        for idx, tarea in enumerate(tareas):
+            status_log.markdown(f"<p style='text-align:center; color:#ff0055; font-size:1rem;'>[SYSTEM LOG] ── {tarea}</p>", unsafe_allow_html=True)
+            monitor_carga.progress((idx + 1) * 25)
+            time.sleep(0.8)
             
-        status_box.empty()
-        st.success("🎯 ¡Composición y masterización completadas con éxito!")
+        status_log.empty()
+        st.success("🎯 Masterización realizada. Stems listos para descargar.")
         
-        # Tarjeta del Reproductor Premium con Ecualizador Animado
+        # Monitor de salida final DAW
         st.markdown("""
-            <div class="studio-panel" style="border: 1px solid #ff007f; box-shadow: 0 0 30px rgba(255, 0, 127, 0.2);">
-                <p style="color: #ff007f; font-weight: bold; font-size: 1.2rem; text-align: center; margin-bottom: 5px;">🎧 MONITOR DE SALIDA DE AUDIO (STUDIO MASTER)</p>
-                <div class="eq-bar-container">
-                    <div class="eq-bar b1" style="animation-duration: 0.8s;"></div>
-                    <div class="eq-bar b2" style="animation-duration: 1.4s;"></div>
-                    <div class="eq-bar b3" style="animation-duration: 1.0s;"></div>
-                    <div class="eq-bar b4" style="animation-duration: 1.7s;"></div>
-                    <div class="eq-bar b5" style="animation-duration: 1.1s;"></div>
-                    <div class="eq-bar b6" style="animation-duration: 1.5s;"></div>
-                </div>
+            <div class='daw-rack' style='border-left: 5px solid #22c55e;'>
+                <div class='rack-title' style='color: #22c55e;'><span>MONITOR DE AUDIO // STEREO OUT</span><span>PRODUCED WITH ATELIER</span></div>
+                <p style='font-size:0.8rem; color:#526484; text-align:center; margin-bottom:10px;'>Pista masterizada final a 12 de líneas temporales (Time-aligned WAV stems)</p>
             </div>
         """, unsafe_allow_html=True)
         st.audio("https://soundhelix.com")
