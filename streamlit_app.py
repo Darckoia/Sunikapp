@@ -1,118 +1,149 @@
 import streamlit as st
 import time
 
-# Configuración de página para replicar la app web de Suno
+# Configuración de página al estilo Web App
 st.set_page_config(
-    page_title="Suno - Create",
+    page_title="Suno",
     page_icon="🎵",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Estilos CSS exactos al layout de Suno (Modo Oscuro, Sidebar fija, Audio Player en Bottom)
+# Estilos CSS exactos para replicar la UI de Suno (Dark Mode Puro, Cards, Player)
 st.markdown("""
 <style>
-    /* Estilos globales */
+    /* Reset Global */
     .stApp {
-        background-color: #0a0a0c;
-        color: #f3f4f6;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: #09090b !important;
+        color: #f4f4f5;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     
-    /* Ocultar elementos nativos de Streamlit */
-    header { visibility: hidden; }
-    footer { visibility: hidden; }
-    #MainMenu { visibility: hidden; }
-    
-    /* Panel lateral de creación (Left Sidebar) */
+    header, footer, #MainMenu { visibility: hidden; }
+
+    /* Sidebar / Create Panel */
     [data-testid="stSidebar"] {
-        background-color: #121318;
+        background-color: #121215 !important;
         border-right: 1px solid #27272a;
-        padding-top: 0rem;
+        padding-top: 1rem;
     }
     
-    /* Encabezado de Suno */
-    .suno-header {
+    /* Top Bar */
+    .suno-nav {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 20px;
-        background-color: #0d0e12;
+        padding: 12px 24px;
+        background-color: #09090b;
         border-bottom: 1px solid #27272a;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
     }
     
     .suno-logo {
-        font-weight: 800;
-        font-size: 1.4rem;
-        letter-spacing: -0.5px;
+        font-weight: 900;
+        font-size: 1.5rem;
+        letter-spacing: -1px;
         color: #ffffff;
     }
     
-    .credits-badge {
-        background-color: #1e1f26;
+    .credits-pill {
+        background-color: #18181b;
         border: 1px solid #3f3f46;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
+        padding: 6px 14px;
+        border-radius: 9999px;
+        font-size: 0.85rem;
+        font-weight: 600;
         color: #a1a1aa;
     }
 
-    /* Tarjetas del Feed de canciones (Right Workspace) */
-    .song-card {
-        background-color: #121318;
+    /* Targetas de Canciones (Suno Grid Cards) */
+    .suno-card {
+        background-color: #141417;
         border: 1px solid #27272a;
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 16px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        transition: transform 0.1s ease, border-color 0.2s;
+    }
+    
+    .suno-card:hover {
+        border-color: #52525b;
+        transform: translateY(-2px);
+    }
+    
+    .cover-art {
+        width: 80px;
+        height: 80px;
         border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 12px;
+        background: linear-gradient(135deg, #2563eb 0%, #d946ef 100%);
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        transition: border-color 0.2s;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 1.2rem;
+        color: white;
+        flex-shrink: 0;
     }
-    .song-card:hover {
-        border-color: #3f3f46;
+    
+    .song-info {
+        flex-grow: 1;
     }
     
     .song-title {
         font-size: 1rem;
-        font-weight: 600;
-        color: #ffffff;
+        font-weight: 700;
+        color: #f4f4f5;
+        margin-bottom: 4px;
     }
     
-    .song-meta {
-        font-size: 0.8rem;
+    .song-tags {
+        font-size: 0.78rem;
         color: #71717a;
-        margin-top: 4px;
+        margin-bottom: 8px;
     }
     
-    /* Botón Create estilo Suno */
+    .badge-v5 {
+        background: #27272a;
+        color: #38bdf8;
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+    /* Botón Crear de Suno (Azul / Magenta Gradient) */
     .stButton>button {
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+        background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%) !important;
         color: #ffffff !important;
         font-weight: 700 !important;
-        border-radius: 8px !important;
+        font-size: 1rem !important;
+        border-radius: 9999px !important;
         border: none !important;
         padding: 12px 0px !important;
         width: 100%;
-        margin-top: 10px;
+        margin-top: 15px;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
     }
     
     .stButton>button:hover {
-        background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%) !important;
-        box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        opacity: 0.9;
+        box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
     }
-    
-    /* Reproductor inferior sticky */
-    .bottom-player {
+
+    /* Sticky Bottom Audio Player */
+    .suno-player {
         position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
-        background-color: #0f1015;
+        height: 70px;
+        background-color: #121215;
         border-top: 1px solid #27272a;
-        padding: 12px 24px;
-        z-index: 999;
+        padding: 0 30px;
+        z-index: 9999;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -120,152 +151,142 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Estado global de la librería de canciones
-if "suno_library" not in st.session_state:
-    st.session_state.suno_library = [
-        {"id": 1, "title": "Esquinas Oscuras v2", "style": "Trap Urbano / Reggaeton", "duration": "3:24", "date": "Hace 2 horas", "vocal": "Flaite Urbano CL"},
-        {"id": 2, "title": "Esquinas Oscuras v1", "style": "Trap Urbano / Reggaeton", "duration": "3:10", "date": "Hace 2 horas", "vocal": "Flaite Urbano CL"},
-        {"id": 3, "title": "Sinfonía del Puerto", "style": "Instrumental / Ambient", "duration": "2:45", "date": "Ayer", "vocal": "Instrumental"}
+# Estado de la base de datos de canciones
+if "suno_feed" not in st.session_state:
+    st.session_state.suno_feed = [
+        {"id": 1, "title": "Esquinas Oscuras", "part": "v5.5 - Part 1", "style": "Chilean Trap / Reggaeton", "duration": "3:24", "cover": "🎵"},
+        {"id": 2, "title": "Esquinas Oscuras", "part": "v5.5 - Part 2", "style": "Chilean Trap / Heavy Bass", "duration": "3:10", "cover": "🔥"},
+        {"id": 3, "title": "Sinfonía del Puerto", "part": "v4.5 - Instrumental", "style": "Ambient / Beats", "duration": "2:45", "cover": "🎹"}
     ]
 
-# ==================== BARRA LATERAL IZQUIERDA (PANEL SUNO CREATE) ====================
+# ==================== BARRA LATERAL (CREATE PANEL EXACTO DE SUNO) ====================
 with st.sidebar:
-    st.markdown("<div class='suno-logo'>🎵 Suno <span style='font-size:0.8rem; color:#3b82f6;'>v5.5</span></div>", unsafe_allow_html=True)
+    st.markdown("<div class='suno-logo'>suno</div>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Toggle Custom Mode (Fiel a la UI de Suno)
-    custom_mode = st.toggle("Custom", value=True)
+    # Switch Custom
+    custom_mode = st.toggle("Custom Mode", value=True)
+    st.caption("v5.5 Engine Active")
     
     st.markdown("---")
     
     if custom_mode:
-        # Modo Custom: Letra + Estilo + Título
-        lyrics_input = st.text_area(
-            "Lyrics", 
-            placeholder="[Verse 1]\nEscribe o pega tus letras aquí...\n\n[Chorus]\nAgrega etiquetas para guiar la estructura...", 
-            height=200
+        # Modo Custom Exacto: Lyrics + Style + Title
+        lyrics = st.text_area(
+            "Lyrics",
+            placeholder="[Verse 1]\nEscribe o pega tu letra aquí...\n\n[Chorus]\nUsa etiquetas como [Chorus] o [Bridge]...",
+            height=180
         )
         
-        c1, c2 = st.columns(2)
-        with c1:
-            if st.button("🪄 Auto Lyrics"):
-                lyrics_input = "[Verse 1]\nCaminando en la noche oscura\nBuscando el camino y la aventura\n\n[Chorus]\nY seguimos coronando en la calle..."
-        with c2:
-            instrumental_only = st.checkbox("Instrumental", value=False)
-            
-        style_input = st.text_input(
-            "Style of Music", 
-            placeholder="Ej: Chilean Trap, Reggaeton, 95 BPM, Heavy Bass"
+        c_inst, c_gen = st.columns([1, 1])
+        with c_inst:
+            instrumental = st.checkbox("Instrumental", value=False)
+        with c_gen:
+            if st.button("✨ Auto-Lyrics"):
+                lyrics = "[Verse 1]\nDe menor en la calle buscando el destino...\n\n[Chorus]\nY seguimos coronando..."
+                
+        style = st.text_input(
+            "Style of Music",
+            placeholder="Ej: Reggaeton, Trap Urbano, 95 BPM"
         )
         
-        title_input = st.text_input(
-            "Title", 
-            placeholder="Nombre de tu canción"
+        title = st.text_input(
+            "Title",
+            placeholder="Nombre de la canción"
         )
     else:
-        # Modo Simple: Song Description
-        prompt_input = st.text_area(
-            "Song Description", 
-            placeholder="Describe el estilo y tema de la canción que quieres que Suno componga...", 
-            height=150
+        # Modo Simple
+        prompt = st.text_area(
+            "Song Description",
+            placeholder="Describe el tipo de canción que quieres que Suno cree...",
+            height=120
         )
-        instrumental_only = st.checkbox("Instrumental", value=False)
-        title_input = "Canción Generada"
-        style_input = "Auto-Style"
+        instrumental = st.checkbox("Instrumental", value=False)
+        title = "Pista Generada"
+        style = "Auto Style"
 
-    # Perfil Vocal / Persona
     st.markdown("---")
     st.markdown("**Vocal Identity / Persona**")
-    vocal_profile = st.selectbox(
-        "Voice Model",
-        [
-            "Español (Chile) - Coa / Flaite Urbano",
-            "Español (Chile) - Neutro Chileno",
-            "Español (Latinoamérica) - Pro Voice",
-            "Inglés (EE.UU.) - Studio Voice"
-        ]
+    vocal_select = st.selectbox(
+        "Vocal Profile",
+        ["Chile - Flaite Urbano / Coa", "Chile - Neutro", "Latino - Pro Voice", "English - Studio"]
     )
-    
-    # Botón Principal de Generación
-    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Botón Create (Genera 2 versiones exactas como en Suno)
     if st.button("Create (50 Credits)"):
-        with st.spinner("Compuesto 2 variaciones..."):
+        with st.spinner("Creando 2 variaciones de audio..."):
             time.sleep(2)
+            t_name = title if title else "Sin Título"
             
-            # Insertar las 2 variaciones automáticas en el feed superior
-            new_title = title_input if title_input else "Sin Título"
-            st.session_state.suno_library.insert(0, {
-                "id": len(st.session_state.suno_library) + 1,
-                "title": f"{new_title} (Part 2)",
-                "style": style_input,
-                "duration": "3:18",
-                "date": "Ahora",
-                "vocal": vocal_profile
+            st.session_state.suno_feed.insert(0, {
+                "id": len(st.session_state.suno_feed) + 1,
+                "title": t_name,
+                "part": "v5.5 - Part 2",
+                "style": style,
+                "duration": "3:15",
+                "cover": "⚡"
             })
-            st.session_state.suno_library.insert(0, {
-                "id": len(st.session_state.suno_library) + 1,
-                "title": f"{new_title} (Part 1)",
-                "style": style_input,
+            st.session_state.suno_feed.insert(0, {
+                "id": len(st.session_state.suno_feed) + 1,
+                "title": t_name,
+                "part": "v5.5 - Part 1",
+                "style": style,
                 "duration": "3:30",
-                "date": "Ahora",
-                "vocal": vocal_profile
+                "cover": "⚡"
             })
             st.rerun()
 
-# ==================== ÁREA PRINCIPAL (WORKSPACE / FEED DE CANCIONES) ====================
+# ==================== CONTENIDO PRINCIPAL (FEED DE CANCIONES Y PANEL DERECHO) ====================
 
-# Encabezado superior
 st.markdown("""
-<div class='suno-header'>
-    <div style='font-weight: 600; font-size: 1.1rem;'>Explore & My Workspace</div>
-    <div class='credits-badge'>⚡ 2,500 Credits Available</div>
+<div class='suno-nav'>
+    <div style='font-size: 1.2rem; font-weight: 700;'>Create Workspace</div>
+    <div class='credits-pill'>⚡ 2,500 Credits</div>
 </div>
 """, unsafe_allow_html=True)
 
-col_main, col_details = st.columns([2.2, 1], gap="medium")
+col_feed, col_inspector = st.columns([2, 1], gap="large")
 
-with col_main:
-    st.markdown("### 📋 Feed de Canciones Generadas")
+with col_feed:
+    st.markdown("#### **Mis Generaciones**")
     
-    # Muestra la lista de canciones al estilo suno.com/create
-    for track in st.session_state.suno_library:
+    # Renderizado en pares/tarjetas al estilo exacto del feed de Suno
+    for track in st.session_state.suno_feed:
         st.markdown(f"""
-        <div class='song-card'>
-            <div>
-                <div class='song-title'>🎵 {track['title']}</div>
-                <div class='song-meta'>Estilo: {track['style']} • Voz: {track['vocal']} • {track['date']}</div>
-            </div>
-            <div style='text-align: right;'>
-                <span style='background:#1e293b; color:#38bdf8; font-size:0.75rem; padding:4px 8px; border-radius:4px;'>{track['duration']}</span>
+        <div class='suno-card'>
+            <div class='cover-art'>{track['cover']}</div>
+            <div class='song-info'>
+                <div class='song-title'>{track['title']} <span class='badge-v5'>{track['part']}</span></div>
+                <div class='song-tags'>{track['style']} • {track['duration']}</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-with col_details:
-    st.markdown("### 🎧 Monitor Activo")
-    st.info("Selecciona o reproduce una canción para ver su espectro y opciones de edición (Studio DAW / Stems).")
+with col_inspector:
+    st.markdown("#### **Detalles & Edición (DAW)**")
+    st.info("Pista activa lista para edición.")
     
-    # Reproductor embebido de la pista actual
+    # Reproducción
     st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")
     
-    st.markdown("---")
-    st.markdown("**Opciones de la Pista:**")
-    st.button("✂️ Extension / Extend Track")
-    st.button("🎙️ Separate Stems (Vocals / Drums)")
-    st.button("📥 Download WAV / MP3")
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.button("✂️ Reuse Prompt & Style")
+    st.button("➕ Extend Track (Continuar canción)")
+    st.button("🎙️ Separate Stems (Voces / Beats)")
+    st.button("📥 Download MP3 / WAV")
 
-# ==================== REPRODUCTOR INFERIOR FLOTANTE (BOTTOM PLAYER) ====================
+# ==================== REPRODUCTOR FLOTANTE INFERIOR ====================
 st.markdown("""
-<div class='bottom-player'>
-    <div style='display:flex; align-items:center; gap:12px;'>
-        <div style='width:40px; height:40px; background:#2563eb; border-radius:4px; display:flex; align-items:center; justify-content:center; font-weight:bold;'>🎵</div>
+<div class='suno-player'>
+    <div style='display:flex; align-items:center; gap:15px;'>
+        <div style='width:42px; height:42px; background:linear-gradient(135deg, #2563eb, #7c3aed); border-radius:6px; display:flex; align-items:center; justify-content:center; font-weight:bold;'>🎵</div>
         <div>
-            <div style='font-size:0.9rem; font-weight:600; color:#fff;'>Esquinas Oscuras (Part 1)</div>
-            <div style='font-size:0.75rem; color:#9ca3af;'>Suno v5.5 Engine • Flaite Urbano CL</div>
+            <div style='font-weight:700; font-size:0.95rem;'>Esquinas Oscuras (Part 1)</div>
+            <div style='font-size:0.75rem; color:#a1a1aa;'>Chilean Trap / Reggaeton • Suno v5.5</div>
         </div>
     </div>
-    <div style='font-size:0.85rem; color:#6b7280;'>
-        0:00 / 3:30
+    <div style='font-size:0.85rem; color:#71717a;'>
+        ▶️ 0:00 / 3:24 🔊
     </div>
 </div>
 """, unsafe_allow_html=True)
