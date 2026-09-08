@@ -1,228 +1,271 @@
 import streamlit as st
 import time
-import os
-import requests
-from datetime import datetime
 
-# ==================== SUNO CREATE CORE ENGINE ====================
-class SunoCreateEngine:
-    def __init__(self):
-        self.voces_preset = {
-            "Masculino": {
-                "Español (Chile) - Coa / Flaite Urbano": "es_cl_male_urbano",
-                "Español (Chile) - Neutro Chileno": "es_cl_male_neutro",
-                "Español (Latinoamérica) - Adam (Pro)": "pNInz6obpgDQGcFmaJgB",
-                "Español (Castellano) - Arnold": "VR6AewLTigWG4xT1s5nC",
-                "Inglés (EE.UU.) - Josh (Studio)": "TxGEqnscrfWFTf81Cj2q"
-            },
-            "Femenino": {
-                "Español (Chile) - Coa / Flaite Urbano": "es_cl_female_urbano",
-                "Español (Chile) - Neutro Chileno": "es_cl_female_neutro",
-                "Español (Latinoamérica) - Rachel (Pro)": "21m00Tcm4TlvDq8ikWAM",
-                "Español (Castellano) - Bella": "EXAVITQu4vr4xnSDxMaL",
-                "Inglés (EE.UU.) - Domi": "AZnzlk1XvdvUeBnXmlld"
-            }
-        }
-        os.makedirs("audio_cache", exist_ok=True)
+# Configuración de página para replicar la app web de Suno
+st.set_page_config(
+    page_title="Suno - Create",
+    page_icon="🎵",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-    def obtener_voice_id(self, genero, acento):
-        gen_key = "Masculino" if "male" in genero.lower() else "Femenino"
-        return self.voces_preset.get(gen_key, {}).get(acento, "21m00Tcm4TlvDq8ikWAM")
-
-suno_engine = SunoCreateEngine()
-
-# ==================== ESTILOS UI SUNO.COM/CREATE ====================
-st.set_page_config(page_title="Suno - Create & DAW Matrix", page_icon="🎵", layout="wide")
-
+# Estilos CSS exactos al layout de Suno (Modo Oscuro, Sidebar fija, Audio Player en Bottom)
 st.markdown("""
-<style> 
-.stApp { background: radial-gradient(circle at top center, #07090e 0%, #010204 100%); color: #e2e8f0; font-family: 'Courier New', Courier, monospace; } 
-.analog-channel { background: linear-gradient(180deg, #0e1220 0%, #080a12 100%); border: 1px solid #1e293b; border-top: 4px solid #00f2fe; border-radius: 6px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); } 
-.vocal-strip { border-top: 4px solid #ff007f; } 
-.master-strip { border-top: 4px solid #eab308; } 
-.lcd-display { background-color: #03050a; border: 1px solid #1e293b; border-radius: 4px; padding: 10px; color: #00ffcc; text-shadow: 0 0 8px rgba(0, 255, 204, 0.4); font-size: 0.8rem; margin-bottom: 12px; } 
-.lcd-display.pink { color: #ff007f; text-shadow: 0 0 8px rgba(255, 0, 127, 0.4); } 
-.lcd-display.yellow { color: #eab308; text-shadow: 0 0 8px rgba(234, 179, 8, 0.4); } 
-.track-card { background: #04060a; border: 1px solid #1e293b; padding: 12px; border-radius: 4px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; } 
-.stButton>button { background: linear-gradient(180deg, #10b981 0%, #047857 100%) !important; color: #ffffff !important; font-family: 'Courier New', monospace !important; font-weight: 900 !important; font-size: 1.2rem !important; border: 2px solid #34d399 !important; border-radius: 4px !important; padding: 16px 0px !important; width: 100%; letter-spacing: 2px; } 
-.stButton>button:hover { background: #10b981 !important; box-shadow: 0 0 25px rgba(52, 211, 147, 0.6); } 
-.led-matrix { display: flex; gap: 6px; margin-bottom: 10px; } 
-.led-bulb { width: 8px; height: 8px; border-radius: 50%; background: #1e293b; } 
-.led-bulb.active-green { background: #22c55e; box-shadow: 0 0 8px #22c55e; } 
-.led-bulb.active-yellow { background: #eab308; box-shadow: 0 0 8px #eab308; } 
-.led-bulb.active-red { background: #ef4444; box-shadow: 0 0 8px #ef4444; animation: blink 0.4s infinite alternate; } 
-@keyframes blink { 0% { opacity: 0.2; } 100% { opacity: 1; } } 
+<style>
+    /* Estilos globales */
+    .stApp {
+        background-color: #0a0a0c;
+        color: #f3f4f6;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    
+    /* Ocultar elementos nativos de Streamlit */
+    header { visibility: hidden; }
+    footer { visibility: hidden; }
+    #MainMenu { visibility: hidden; }
+    
+    /* Panel lateral de creación (Left Sidebar) */
+    [data-testid="stSidebar"] {
+        background-color: #121318;
+        border-right: 1px solid #27272a;
+        padding-top: 0rem;
+    }
+    
+    /* Encabezado de Suno */
+    .suno-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
+        background-color: #0d0e12;
+        border-bottom: 1px solid #27272a;
+        margin-bottom: 20px;
+    }
+    
+    .suno-logo {
+        font-weight: 800;
+        font-size: 1.4rem;
+        letter-spacing: -0.5px;
+        color: #ffffff;
+    }
+    
+    .credits-badge {
+        background-color: #1e1f26;
+        border: 1px solid #3f3f46;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        color: #a1a1aa;
+    }
+
+    /* Tarjetas del Feed de canciones (Right Workspace) */
+    .song-card {
+        background-color: #121318;
+        border: 1px solid #27272a;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: border-color 0.2s;
+    }
+    .song-card:hover {
+        border-color: #3f3f46;
+    }
+    
+    .song-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #ffffff;
+    }
+    
+    .song-meta {
+        font-size: 0.8rem;
+        color: #71717a;
+        margin-top: 4px;
+    }
+    
+    /* Botón Create estilo Suno */
+    .stButton>button {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+        border: none !important;
+        padding: 12px 0px !important;
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .stButton>button:hover {
+        background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%) !important;
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    }
+    
+    /* Reproductor inferior sticky */
+    .bottom-player {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: #0f1015;
+        border-top: 1px solid #27272a;
+        padding: 12px 24px;
+        z-index: 999;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# BARRA DE CRÉDITOS Y TELEMETRÍA SUNO
-st.markdown("<div style='display: flex; justify-content: space-between; background: #020306; padding: 10px 24px; border-bottom: 2px solid #1e293b; font-size: 0.75rem; color: #475569; letter-spacing:1px;'><span>SUNO.COM/CREATE // ENGINE ACTIVE</span><span>CREDITS REMAINING: 2,500 / 2,500 PRO PLAN</span></div>", unsafe_allow_html=True)
-
-st.markdown("<h1 style='text-align: center; color: #fff; letter-spacing: 6px; font-weight: 900; margin-top:20px; font-size:2.2rem;'>🪐 SUNO CREATE STUDIO</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #38bdf8; font-size: 0.8rem; letter-spacing: 4px; margin-bottom: 30px;'>ESTUDIO OFICIAL DE GENERACIÓN Y COMPOSICIÓN MUSICAL</p>", unsafe_allow_html=True)
-
-# BASE DE DATOS Y FEED EN TIEMPO REAL
-if "db_tracks" not in st.session_state:
-    st.session_state.db_tracks = [
-        {"nombre": "Esquinas Oscuras (Trap CL v5.5)", "fecha": "08/2026", "perfil": "Flaite Urbano", "tipo": "Custom Mode"},
-        {"nombre": "Sinfonía del Puerto (Neutro Mix)", "fecha": "08/2026", "perfil": "Neutro Chileno", "tipo": "Instrumental"}
+# Estado global de la librería de canciones
+if "suno_library" not in st.session_state:
+    st.session_state.suno_library = [
+        {"id": 1, "title": "Esquinas Oscuras v2", "style": "Trap Urbano / Reggaeton", "duration": "3:24", "date": "Hace 2 horas", "vocal": "Flaite Urbano CL"},
+        {"id": 2, "title": "Esquinas Oscuras v1", "style": "Trap Urbano / Reggaeton", "duration": "3:10", "date": "Hace 2 horas", "vocal": "Flaite Urbano CL"},
+        {"id": 3, "title": "Sinfonía del Puerto", "style": "Instrumental / Ambient", "duration": "2:45", "date": "Ayer", "vocal": "Instrumental"}
     ]
 
-# BARRA LATERAL (PANEL DE CONTROL DE PROMPTS Y RECURSOS)
+# ==================== BARRA LATERAL IZQUIERDA (PANEL SUNO CREATE) ====================
 with st.sidebar:
-    st.markdown("### 🎛️ SUNO CREATE SETTINGS")
-    modelo_suno = st.selectbox("Versión de Motor:", ["v5.5 Premier", "v4.5 Standard", "v3.5 Legacy"])
-    solo_instrumental = st.checkbox("Solo Instrumental (Sin Voces)", value=False)
-    st.markdown("---")
-    st.markdown("### 🔑 API KEY & SERVICIOS")
-    api_key_input = st.text_input("Suno API Key:", type="password", placeholder="Clave de API...")
-    st.caption("Modo demostración integrado si no ingresas clave.")
-
-# ==================== PESTAÑAS DE SUNO.COM ====================
-tab_create, tab_studio, tab_library, tab_help, tab_about = st.tabs([
-    "🎵 CREATE (SUNO.COM/CREATE)", 
-    "🎛️ STUDIO 2.0 (DAW)", 
-    "📁 MY LIBRARY & FEED", 
-    "❓ HELP CENTER", 
-    "ℹ️ ABOUT SUNO"
-])
-
-# ==================== PESTAÑA 1: CREATE ====================
-with tab_create:
-    custom_toggle = st.toggle("Custom Mode (Activar control de letras y estrofas)", value=True)
-    
-    col1, col2, col3 = st.columns([1.3, 1.3, 1.1], gap="large")
-    
-    with col1:
-        st.markdown("<div class='analog-channel'><div class='hardware-header'><span>CH 01 // SONG DESCRIPTION</span><span>PROMPT BUS</span></div></div>", unsafe_allow_html=True)
-        st.markdown("<div class='lcd-display'>[STYLE & LYRICS MATRIX]<br>INSERTA TU CONCEPTO O LETRA COMPLETA</div>", unsafe_allow_html=True)
-        
-        if custom_toggle:
-            st.markdown("<p style='font-size:0.75rem; color:#00ffcc; font-weight:bold;'>✍️ LYRICS (LETRA DE LA CANCIÓN):</p>", unsafe_allow_html=True)
-            letra_input = st.text_area("Escribe tus versos marcados con etiquetas [Verse], [Chorus], [Bridge]:", placeholder="[Verse 1]\nCamino de noche por la ciudad...\n\n[Chorus]\nY no miro atrás...")
-            
-            if st.button("📝 GENERAR LETRA CON IA"):
-                st.markdown("<div class='lcd-display'>[AUTO LYRICS GENERATED]<br>'De menor en la pobla buscando el destino...<br>Marcando la diferencia en el camino.'</div>", unsafe_allow_html=True)
-            
-            prompt_estilo = st.text_input("Style of Music (Estilo de Música):", placeholder="Ej: Reggaeton Chileno, Trap Urbano, tempo 95 BPM, bajo pesado...")
-            titulo_song = st.text_input("Title (Título de la canción):", placeholder="Ej: Esquinas Oscuras")
-        else:
-            prompt_estilo = st.text_area("Song Description (Describe la canción que quieres crear):", placeholder="Ej: Una canción de Trap Urbano chileno sobre la superación con ritmo lento y melodía melancólica...")
-            titulo_song = "Suno Track Generado"
-            
-        st.markdown("<div class='led-matrix'><div class='led-bulb active-green'></div><div class='led-bulb active-green'></div><div class='led-bulb active-green'></div><div class='led-bulb active-yellow'></div><div class='led-bulb'></div></div>", unsafe_allow_html=True)
-
-    with col2:
-        st.markdown("<div class='analog-channel vocal-strip'><div class='hardware-header' style='color:#ff007f;'><span>CH 02 // VOCAL IDENTITY</span><span>PERSONA SELECTOR</span></div></div>", unsafe_allow_html=True)
-        st.markdown("<div class='lcd-display pink'>[VOICE ENGINE SUNO v5.5]<br>CONFIGURACIÓN DE PERSONA Y ACENTO</div>", unsafe_allow_html=True)
-        
-        genero_vocal = st.radio("Género Vocal:", ["Male (Masculino)", "Female (Femenino)"], horizontal=True)
-        
-        acento_geografico = st.selectbox(
-            "Selección de Acento:", 
-            [
-                "Español (Chile) - Coa / Flaite Urbano",
-                "Español (Chile) - Neutro Chileno",
-                "Español (Latinoamérica) - Adam (Pro)",
-                "Español (Castellano) - Arnold",
-                "Inglés (EE.UU.) - Josh (Studio)"
-            ]
-        )
-        
-        voice_id_sel = suno_engine.obtener_voice_id(genero_vocal, acento_geografico)
-        st.caption(f"🎙️ Profile Voice ID: `{voice_id_sel}`")
-        
-        opcion_source = st.selectbox("Audio Input / Cover Mode:", ["Sin Audio de Base", "Upload Audio (Sube muestra para transformar)", "Reuse Persona"])
-        archivo_ref = st.file_uploader("Subir referencia audio (.wav, .mp3):", type=["wav", "mp3"])
-
-    with col3:
-        st.markdown("<div class='analog-channel master-strip'><div class='hardware-header' style='color:#eab308;'><span>CH 03 // GENERATION OUT</span><span>VARIATIONS & EXPORT</span></div></div>", unsafe_allow_html=True)
-        st.markdown("<small style='font-size:0.7rem; color:#64748b;'>VU CLIP METER:</small><div class='led-matrix'><div class='led-bulb active-green'></div><div class='led-bulb active-green'></div><div class='led-bulb active-green'></div><div class='led-bulb active-yellow'></div><div class='led-bulb active-red'></div></div>", unsafe_allow_html=True)
-        
-        st.markdown("<p style='font-size:0.75rem; color:#eab308; font-weight:bold;'>GENERACIÓN EN PARALELO:</p>", unsafe_allow_html=True)
-        st.caption("Suno genera 2 variaciones automáticas por cada intento (Part 1 y Part 2).")
-        
-        modo_stem = st.selectbox("Exportación de Pistas:", ["Full Stereo Audio", "Get Stems (Separar Voz e Instrumental)"])
-        st.checkbox("Create Video Hooks (Formato TikTok/Reels)", value=True)
-
+    st.markdown("<div class='suno-logo'>🎵 Suno <span style='font-size:0.8rem; color:#3b82f6;'>v5.5</span></div>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
     
-    if st.button("🔥 CREATE (GENERAR 2 VARIACIONES DE CANCIÓN)", use_container_width=True):
-        with st.spinner(""):
-            log_box = st.empty()
-            p_bar = st.progress(0)
+    # Toggle Custom Mode (Fiel a la UI de Suno)
+    custom_mode = st.toggle("Custom", value=True)
+    
+    st.markdown("---")
+    
+    if custom_mode:
+        # Modo Custom: Letra + Estilo + Título
+        lyrics_input = st.text_area(
+            "Lyrics", 
+            placeholder="[Verse 1]\nEscribe o pega tus letras aquí...\n\n[Chorus]\nAgrega etiquetas para guiar la estructura...", 
+            height=200
+        )
+        
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("🪄 Auto Lyrics"):
+                lyrics_input = "[Verse 1]\nCaminando en la noche oscura\nBuscando el camino y la aventura\n\n[Chorus]\nY seguimos coronando en la calle..."
+        with c2:
+            instrumental_only = st.checkbox("Instrumental", value=False)
             
-            pasos = [
-                "[SUNO ENGINE] Conectando con servidor de composición...",
-                f"[MODEL] Invocando modelo '{modelo_suno}'...",
-                f"[VOICE] Inyectando perfil '{acento_geografico}'...",
-                "[MASTER] Generando Pista v1 y Pista v2 en paralelo..."
-            ]
-            for idx, paso in enumerate(pasos):
-                log_box.markdown(f"<p style='text-align:center; color:#00ffcc; font-size:0.85rem;'>{paso}</p>", unsafe_allow_html=True)
-                p_bar.progress((idx + 1) * 25)
-                time.sleep(0.6)
-            log_box.empty()
-            
-            # Agregar a la biblioteca local
-            st.session_state.db_tracks.insert(0, {"nombre": f"{titulo_song} (Part 1)", "fecha": "09/2026", "perfil": acento_geografico, "tipo": "Suno v5.5"})
-            st.session_state.db_tracks.insert(0, {"nombre": f"{titulo_song} (Part 2)", "fecha": "09/2026", "perfil": acento_geografico, "tipo": "Suno v5.5"})
-            
-            st.success("🎯 2 VARIACIONES GENERADAS Y GUARDADAS EN TU BIBLIOTECA")
-            
-        st.markdown("### 🎵 VARIACIONES GENERADAS (SUNO FEED):")
-        var_col1, var_col2 = st.columns(2)
-        with var_col1:
-            st.markdown(f"<div class='lcd-display yellow'><b>{titulo_song} (Part 1)</b><br>Duration: 3:42 | Model: {modelo_suno}</div>", unsafe_allow_html=True)
-            st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")
-            st.download_button("📥 Descargar Part 1 (MP3/WAV)", data=b"part1", file_name=f"{titulo_song}_part1.mp3", use_container_width=True)
-        with var_col2:
-            st.markdown(f"<div class='lcd-display yellow'><b>{titulo_song} (Part 2)</b><br>Duration: 3:15 | Model: {modelo_suno}</div>", unsafe_allow_html=True)
-            st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3")
-            st.download_button("📥 Descargar Part 2 (MP3/WAV)", data=b"part2", file_name=f"{titulo_song}_part2.mp3", use_container_width=True)
+        style_input = st.text_input(
+            "Style of Music", 
+            placeholder="Ej: Chilean Trap, Reggaeton, 95 BPM, Heavy Bass"
+        )
+        
+        title_input = st.text_input(
+            "Title", 
+            placeholder="Nombre de tu canción"
+        )
+    else:
+        # Modo Simple: Song Description
+        prompt_input = st.text_area(
+            "Song Description", 
+            placeholder="Describe el estilo y tema de la canción que quieres que Suno componga...", 
+            height=150
+        )
+        instrumental_only = st.checkbox("Instrumental", value=False)
+        title_input = "Canción Generada"
+        style_input = "Auto-Style"
 
-# ==================== PESTAÑA 2: STUDIO 2.0 ====================
-with tab_studio:
-    st.markdown("<div class='analog-channel'><div class='hardware-header'><span>SUNO STUDIO 2.0 // MULTITRACK DAW EDITOR</span><span>PREMIER EDITION</span></div></div>", unsafe_allow_html=True)
-    st.markdown("<div class='lcd-display'>[DAW TIMELINE ACTIVE]<br>EDICIÓN DE PISTAS GENERADAS // EXTENSIONES Y REEMPLAZO DE SECCIONES</div>", unsafe_allow_html=True)
+    # Perfil Vocal / Persona
+    st.markdown("---")
+    st.markdown("**Vocal Identity / Persona**")
+    vocal_profile = st.selectbox(
+        "Voice Model",
+        [
+            "Español (Chile) - Coa / Flaite Urbano",
+            "Español (Chile) - Neutro Chileno",
+            "Español (Latinoamérica) - Pro Voice",
+            "Inglés (EE.UU.) - Studio Voice"
+        ]
+    )
     
-    sc1, sc2 = st.columns([2, 1])
-    with sc1:
-        st.markdown("🎛️ **HERRAMIENTAS DE EDICIÓN DE TIEMPO:**")
-        st.slider("Extend Track From (Extender desde segundo)", 0, 240, 120)
-        st.text_input("Replace Section Lyrics (Cambiar letra de un verso):", placeholder="Escribe el nuevo verso para reemplazar...")
-        st.slider("Automation Parameter (Filtro de Frecuencia)", 0, 100, 50)
-    
-    with sc2:
-        st.markdown("🎚️ **MEZCLADOR DE STEMS DE LA CANCIÓN:**")
-        st.slider("Vocal Level", 0, 100, 85)
-        st.slider("Drums Level", 0, 100, 90)
-        st.slider("Bass Level", 0, 100, 80)
-        st.slider("Synths / Instruments", 0, 100, 75)
+    # Botón Principal de Generación
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("Create (50 Credits)"):
+        with st.spinner("Compuesto 2 variaciones..."):
+            time.sleep(2)
+            
+            # Insertar las 2 variaciones automáticas en el feed superior
+            new_title = title_input if title_input else "Sin Título"
+            st.session_state.suno_library.insert(0, {
+                "id": len(st.session_state.suno_library) + 1,
+                "title": f"{new_title} (Part 2)",
+                "style": style_input,
+                "duration": "3:18",
+                "date": "Ahora",
+                "vocal": vocal_profile
+            })
+            st.session_state.suno_library.insert(0, {
+                "id": len(st.session_state.suno_library) + 1,
+                "title": f"{new_title} (Part 1)",
+                "style": style_input,
+                "duration": "3:30",
+                "date": "Ahora",
+                "vocal": vocal_profile
+            })
+            st.rerun()
 
-# ==================== PESTAÑA 3: LIBRARY ====================
-with tab_library:
-    st.markdown("### 📁 MY LIBRARY & GENERATION FEED")
-    st.markdown("<div class='lcd-display'>TODAS LAS CREACIONES GUARDADAS // DERECHOS COMERCIALES RESERVADOS</div>", unsafe_allow_html=True)
+# ==================== ÁREA PRINCIPAL (WORKSPACE / FEED DE CANCIONES) ====================
+
+# Encabezado superior
+st.markdown("""
+<div class='suno-header'>
+    <div style='font-weight: 600; font-size: 1.1rem;'>Explore & My Workspace</div>
+    <div class='credits-badge'>⚡ 2,500 Credits Available</div>
+</div>
+""", unsafe_allow_html=True)
+
+col_main, col_details = st.columns([2.2, 1], gap="medium")
+
+with col_main:
+    st.markdown("### 📋 Feed de Canciones Generadas")
     
-    for track in st.session_state.db_tracks:
+    # Muestra la lista de canciones al estilo suno.com/create
+    for track in st.session_state.suno_library:
         st.markdown(f"""
-        <div class='track-card'>
+        <div class='song-card'>
             <div>
-                <strong>🎵 {track['nombre']}</strong><br>
-                <small style='color:#94a3b8;'>Fecha: {track['fecha']} | Perfil: {track['perfil']} | Tipo: {track['tipo']}</small>
+                <div class='song-title'>🎵 {track['title']}</div>
+                <div class='song-meta'>Estilo: {track['style']} • Voz: {track['vocal']} • {track['date']}</div>
             </div>
-            <span style='color:#10b981; font-size:0.75rem;'>COMMERCIAL RIGHTS SECURED</span>
+            <div style='text-align: right;'>
+                <span style='background:#1e293b; color:#38bdf8; font-size:0.75rem; padding:4px 8px; border-radius:4px;'>{track['duration']}</span>
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
-# ==================== PESTAÑA 4: HELP CENTER ====================
-with tab_help:
-    st.markdown("### ❓ HELP CENTER (HELP.SUNO.COM)")
-    with st.expander("🎵 ¿Cómo funciona el Custom Mode en Suno Create?"):
-        st.write("El Custom Mode te permite escribir tus propias letras y dividirlas mediante corchetes como `[Verse]`, `[Chorus]`, y `[Bridge]`, además de controlar de forma independiente el estilo de música.")
+with col_details:
+    st.markdown("### 🎧 Monitor Activo")
+    st.info("Selecciona o reproduce una canción para ver su espectro y opciones de edición (Studio DAW / Stems).")
+    
+    # Reproductor embebido de la pista actual
+    st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")
+    
+    st.markdown("---")
+    st.markdown("**Opciones de la Pista:**")
+    st.button("✂️ Extension / Extend Track")
+    st.button("🎙️ Separate Stems (Vocals / Drums)")
+    st.button("📥 Download WAV / MP3")
 
-# ==================== PESTAÑA 5: ABOUT SUNO ====================
-with tab_about:
-    st.markdown("### ℹ️ ABOUT SUNO AI (SUNO.COM/ABOUT)")
-    st.markdown("Suno está diseñado para permitir a cualquier persona crear música de calidad profesional a partir de texto o ideas líricas.")
+# ==================== REPRODUCTOR INFERIOR FLOTANTE (BOTTOM PLAYER) ====================
+st.markdown("""
+<div class='bottom-player'>
+    <div style='display:flex; align-items:center; gap:12px;'>
+        <div style='width:40px; height:40px; background:#2563eb; border-radius:4px; display:flex; align-items:center; justify-content:center; font-weight:bold;'>🎵</div>
+        <div>
+            <div style='font-size:0.9rem; font-weight:600; color:#fff;'>Esquinas Oscuras (Part 1)</div>
+            <div style='font-size:0.75rem; color:#9ca3af;'>Suno v5.5 Engine • Flaite Urbano CL</div>
+        </div>
+    </div>
+    <div style='font-size:0.85rem; color:#6b7280;'>
+        0:00 / 3:30
+    </div>
+</div>
+""", unsafe_allow_html=True)
