@@ -1,6 +1,5 @@
 import streamlit as st
 import numpy as np
-import scipy.io.wavfile as wav
 import os
 
 # CREACIÓN AUTOMÁTICA DE CARPETAS DE CACHÉ
@@ -138,20 +137,20 @@ with tab_create:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# 🔌 PROCESADOR INTERNO GENERATIVO SEGURO (INMUNE A BLOQUEOS)
+# 🔌 PROCESADOR INTERNO GENERATIVO SEGURO (CON GENERACIÓN DE BYTES NATIVA)
 if st.button("🔌 TRANSMITIR SEÑAL Y COMPILAR EN S_FLOW", use_container_width=True):
     st.success("🪐 COMPOSICIÓN Y TRATAMIENTO COMPLETADOS CON ÉXITO")
     
     st.markdown("<div class='sunic-rack' style='border-color: #10b981; background: #05070f;'><div class='hardware-label' style='color:#10b981;'><span>STEREO MONITOR LIVE // DIGITAL MASTER OUT</span><span>AUDIO READY</span></div></div>", unsafe_allow_html=True)
     
-    # GENERADOR BINARIO DE AUDIO INTERNO REAL
+    # GENERADOR BINARIO PURO NATIVO DE PYTHON (SIN SUB-LIBRERÍAS DE AUDIO DEPENDIENTES)
     sample_rate = 22050
-    duracion = 4
+    duracion = 3
     t = np.linspace(0, duracion, sample_rate * duracion, endpoint=False)
     
-    # Síntesis matemática limpia: Ondas de sub-bajos y oscilador melódico
-    onda_sub = np.sin(2 * np.pi * 55 * t) * 0.4
-    onda_synth = np.sin(2 * np.pi * 220 * t) * 0.2
+    # Síntesis armónica digital de ondas
+    onda_sub = np.sin(2 * np.pi * 60 * t) * 0.4
+    onda_synth = np.sin(2 * np.pi * 240 * t) * 0.2
     onda_mix = onda_sub + onda_synth
-    audio_bytes = np.int16(onda_mix * 32767)
+    audio_int16 = np.int16(onda_mix * 32767)
     
