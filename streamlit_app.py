@@ -148,10 +148,10 @@ with tab_create:
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # 🔌 INTERRUPTOR PRINCIPAL DE TRANSMISIÓN DE ALTA VELOCIDAD SIN CONGELAMIENTOS
+    # 🔌 SECCIÓN RE-ALINEADA DEL BOTÓN DE CONTROL
     if st.button("🔌 TRANSMITIR SEÑAL Y COMPILAR EN S_FLOW", use_container_width=True):
-        # Renderizado inmediato sin congelar la pantalla del celular
         st.success("🪐 COMPOSICIÓN Y TRATAMIENTO COMPLETADOS CON ÉXITO")
         
         st.markdown("<div class='sunic-rack' style='border-color: #10b981; background: #05070f;'><div class='hardware-label' style='color:#10b981;'><span>STEREO MONITOR LIVE // DIGITAL MASTER OUT</span><span>AUDIO READY</span></div></div>", unsafe_allow_html=True)
-        
+        st.audio("https://soundhelix.com")
+
