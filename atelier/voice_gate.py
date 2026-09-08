@@ -1,35 +1,73 @@
 class VoiceGate:
     def __init__(self):
-        # Mapeo de acentos globales y configuraciones de idioma para los modelos de IA
+        # Base de datos fonética para inyectar modismos, tonos y variantes de diccionarios
         self.acentos = {
             "masculino": {
-                "Español (Latino)": "es-LA-Male-Neural",
-                "Español (Castellano)": "es-ES-Male-Neural",
-                "Inglés (EE.UU.)": "en-US-Male-Neural"
+                "Español (Chile) - Coa / Flaite Urbano": {
+                    "modelo_base": "es-CL-Male-Neural",
+                    "diccionario_jerga": ["hermano", "wa", "vio", "voh", "choro", "shispa", "perkin", "waa"],
+                    "entrenamiento_estilo": "street_urban_cl"
+                },
+                "Español (Chile) - Neutro Chileno": {
+                    "modelo_base": "es-CL-Male-Neural",
+                    "diccionario_jerga": [],
+                    "entrenamiento_estilo": "broadcast_neutral_cl"
+                },
+                "Español (Latinoamérica) - Neutro Internacional": {
+                    "modelo_base": "es-MX-Male-Neural",
+                    "diccionario_jerga": [],
+                    "entrenamiento_estilo": "global_latam"
+                },
+                "Español (Castellano - España)": {
+                    "modelo_base": "es-ES-Male-Neural",
+                    "diccionario_jerga": [],
+                    "entrenamiento_estilo": "iberic_studio"
+                }
             },
             "femenino": {
-                "Español (Latino)": "es-LA-Female-Neural",
-                "Español (Castellano)": "es-ES-Female-Neural",
-                "Inglés (EE.UU.)": "en-US-Female-Neural"
+                "Español (Chile) - Coa / Flaite Urbano": {
+                    "modelo_base": "es-CL-Female-Neural",
+                    "diccionario_jerga": ["hermana", "wa", "vio", "voh", "perkina"],
+                    "entrenamiento_estilo": "street_urban_cl"
+                },
+                "Español (Chile) - Neutro Chileno": {
+                    "modelo_base": "es-CL-Female-Neural",
+                    "diccionario_jerga": [],
+                    "entrenamiento_estilo": "broadcast_neutral_cl"
+                },
+                "Español (Latinoamérica) - Neutro Internacional": {
+                    "modelo_base": "es-MX-Female-Neural",
+                    "diccionario_jerga": [],
+                    "entrenamiento_estilo": "global_latam"
+                }
             }
         }
 
     def obtener_configuracion_voz(self, genero, acento_seleccionado):
         """
-        Retorna el identificador del modelo neural exacto 
-        según el género y acento mundial que elija el usuario.
+        Retorna los parámetros de entrenamiento neural exactos 
+        según el género y el dialecto específico seleccionado en la consola.
         """
-        genero_key = genero.lower()
+        genero_key = "masculino" if "masculino" in genero.lower() else "femenino"
+        
         if genero_key in self.acentos:
-            # Busca el acento o devuelve uno por defecto si no lo encuentra
-            return self.acentos[genero_key].get(acento_seleccionado, self.acentos[genero_key]["Español (Latino)"])
-        return "es-LA-Female-Neural"
+            # Busca la configuración o devuelve el Neutro Chileno como respaldo seguro
+            return self.acentos[genero_key].get(
+                acento_seleccionado, 
+                self.acentos[genero_key]["Español (Chile) - Neutro Chileno"]
+            )
+        return self.acentos["masculino"]["Español (Chile) - Neutro Chileno"]
 
-    def procesar_texto_a_voz(self, texto, modelo_voz):
+    def emular_voz_estilo(self, texto, configuracion):
         """
-        Simula la llamada a los motores de clonación o síntesis de voz avanzados.
-        Aquí se conectaría con APIs como ElevenLabs, Bark o TTS profundo.
+        Simula el procesamiento fonético donde se inyectan las entonaciones 
+        urbanas o neutras antes de enviarlo al sintetizador final.
         """
-        print(f"🗣️ Generando audio neural con el modelo: {modelo_voz}")
-        # En producción, esto genera o descarga un archivo de audio procesado (.wav)
-        return "audio_cache/voz_generada.wav"
+        estilo = configuracion["entrenamiento_estilo"]
+        modelo = configuracion["modelo_base"]
+        
+        print(f"🎙️ [VOICE GATE] Aplicando estilo fonético: '{estilo}' en modelo {modelo}")
+        if estilo == "street_urban_cl":
+            print("🔥 Modulando frecuencias: Entonación alta al final de las frases y fricción en consonantes S/CH.")
+            
+        return f"audio_cache/output_{estilo}.wav"
