@@ -24,7 +24,7 @@ st.set_page_config(page_title="SUNICFLOW // GENERATIVE WORKSTATION", page_icon="
 st.markdown("""
     <style>
     .stApp { background: radial-gradient(circle at top center, #0b0d19 0%, #030407 100%); color: #cbd5e1; font-family: 'Courier New', Courier, monospace; }
-    .sunic-rack { background: linear-gradient(180deg, #101424 0%, #090b14 100%); border: 1px solid #1e293b; border-top: 4px solid #00f2fe; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+    .sunic-rack { background: linear-gradient(180deg, #101424 0%, #090b14 100%); border: 1px solid #1e293b; border-top: 4px solid #00f2fe; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6); }
     .vocal-rack { border-top: 4px solid #ff007f; }
     .master-rack { border-top: 4px solid #eab308; }
     .social-card { background: #060811; border: 1px solid #1e293b; border-left: 4px solid #a855f7; padding: 16px; border-radius: 6px; margin-bottom: 12px; }
@@ -46,9 +46,11 @@ if "db_tracks" not in st.session_state:
         {"nombre": "Sinfonía del Puerto (Neutro Mix)", "fecha": "08/2026", "perfil": "Neutro Chileno", "tipo": "Pure Instrumental"}
     ]
 
-# MÓDULO INTELIGENTE DEL COCOGNITIVO CHAT BAR (NLP CO-PILOT)
-if "chat_reverb" not in st.session_state: st.session_state.chat_reverb = 35
-if "chat_tune" not in st.session_state: st.session_state.chat_tune = 20
+# MÓDULO INTELIGENTE DEL COGNITIVO CHAT BAR
+if "chat_reverb" not in st.session_state:
+    st.session_state.chat_reverb = 35
+if "chat_tune" not in st.session_state:
+    st.session_state.chat_tune = 20
 
 tab_create, tab_studio, tab_explore, tab_pricing = st.tabs(["⚡ 01. CREATE (GENERACIÓN)", "🎛️ 02. STUDIO 2.0 (DAW MULTITRACK)", "🪐 03. EXPLORE & COMMUNITY", "💎 04. PRICING & CLOUD"])
 
@@ -91,7 +93,6 @@ with tab_create:
         st.markdown("<div class='sunic-rack master-rack'><div class='hardware-label' style='color:#eab308;'><span>CH 03 // EXPORT & MASTER BUS</span><span>STEM EXTRACTOR</span></div></div>", unsafe_allow_html=True)
         algoritmo_stem = st.selectbox("Modos de Separación:", ["Auto Alignment Mode", "Split from mix", "Advanced Multitrack (12 Stems)"])
         
-        # CONEXIÓN DEL CO-PILOT CHAT BAR INTELIGENTE CON LOS SLIDERS
         st.markdown("<p style='font-size:0.75rem; color:#eab308; font-weight:bold;'>🎚️ CONSOLA DE EFECTOS ANALÓGICOS:</p>", unsafe_allow_html=True)
         reverb_3d = st.slider("REVERB ROOM SIZE (FADER)", 0, 100, int(st.session_state.chat_reverb))
         autotune_gate = st.slider("QUANTUM AUTOTUNE (GAIN)", 0, 100, int(st.session_state.chat_tune))
@@ -105,7 +106,6 @@ with tab_create:
         with st.spinner(""):
             audio_final = "https://soundhelix.com"
             
-            # CONEXIÓN REAL DEL PIPELINE CON LA CARPETA TALLER / REQUISITOS ACTIVOS
             if audio_subido is not None and MotorStudioPro is not None:
                 try:
                     with open("audio_cache/input_tmp.wav", "wb") as f:
@@ -114,7 +114,7 @@ with tab_create:
                     audio_final = studio_engine.procesar_cadena_master(
                         activar_eq=activar_pultec, activar_ssl=activar_ssl, nivel_reverb=reverb_3d, ruta_salida="audio_cache/master_real.wav"
                     )
-                    st.success("🎯 ¡PROCESAMIENTO DE AUDIO AUDIO-CIENTÍFICO COMPLETADO EN TU RACK!")
+                    st.success("🎯 ¡PROCESAMIENTO DE AUDIO COMPLETADO EN TU RACK!")
                 except Exception as e:
                     st.warning(f"⚠️ Ejecutando salida master predeterminada. Detalles: {e}")
             else:
@@ -127,13 +127,18 @@ with tab_create:
             with sc1: st.download_button("🎵 Descargar Pista Instrumental Limpia (WAV)", data=b"inst", file_name="sunicflow_instrumental.wav", use_container_width=True)
             with sc2: st.download_button("🎤 Descargar Acapella de Voz con IA (WAV)", data=b"vocals", file_name="sunicflow_acapella.wav", use_container_width=True)
 
-# ==================== SECCIÓN 2: STUDIO 2.0 (DAW + CHAT BAR INTEGRADO) ====================
+# ==================== SECCIÓN 2: STUDIO 2.0 ====================
 with tab_studio:
     st.markdown("<div class='sunic-rack' style='border-color:#ff007f;'><div class='hardware-header' style='color:#ff007f;'><span>SUNICFLOW STUDIO 2.0 // CHAT BAR CO-PILOT COGNITIVO</span></div></div>", unsafe_allow_html=True)
     
-    # 🤖 INTERRUPTOR COGNITIVO REAL DEL CO-PILOT CHAT BAR
     st.markdown("<p style='font-size:0.85rem; color:#ff007f; font-weight:bold;'>💬 CHAT BAR (CONTROL DE CONSOLA POR TEXTO NLP):</p>", unsafe_allow_html=True)
     comando_chat = st.text_input("Escribe una instrucción para mover los controles del estudio:", placeholder="Ej: Sube la reverb a 80 o pon el autotune en 50...")
     
     if comando_chat:
-        
+        palabras = comando_chat.lower().split()
+        numeros = [int(s) for s in palabras if s.isdigit()]
+        if numeros:
+            valor = numeros[0]
+            for palabra in palabras:
+                if "reverb" in palabra or "espacio" in palabra:
+                    st.session_state.chat_reverb = valor
