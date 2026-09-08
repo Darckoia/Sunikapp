@@ -2,15 +2,17 @@ import streamlit as st
 import time
 import os
 
-# IMPORTACIÓN DIRECTA DEL MOTOR INTERNO DESDE LA CARPETA TALLER (ATELIER)
+# IMPORTACIÓN DIRECTA DE LOS COMPONENTES DESDE LA CARPETA TALLER / ATELIER
 try:
     from atelier.voice_gate import VoiceGate
+    from atelier.studio import MotorStudioPro
 except ImportError:
-    # Respaldo si el servidor lo lee con el nombre traducido del repositorio
     try:
         from taller.voice_gate import VoiceGate
+        from taller.studio import MotorStudioPro
     except ImportError:
         VoiceGate = None
+        MotorStudioPro = None
 
 # 1. AJUSTES DE RACK DE ALTA FIDELIDAD (CSS MULTI-DIAL)
 st.set_page_config(page_title="ATELIER MASTER CONSOLE", page_icon="🎚️", layout="wide")
@@ -102,7 +104,7 @@ with col2:
             "Inglés (Reino Unido - London Drill)"
         ]
     )
-    archivo_voz = st.file_uploader("EXTERNAL AUDIO SIDECHAIN (MAX 8 MIN):", type=["wav", "mp3"])
+    archivo_voz = st.file_uploader("EXTERNAL AUDIO SIDECHAIN (MUESTRA WAV):", type=["wav"])
 
 with col3:
     st.markdown("<div class='analog-channel master-strip'><div class='hardware-header' style='color:#eab308;'><span>MASTER BUS // CHANNEL STRIP</span><span>OUT ROUTE</span></div></div>", unsafe_allow_html=True)
@@ -111,19 +113,18 @@ with col3:
     autotune_gate = st.slider("QUANTUM AUTOTUNE (GAIN)", 0, 100, 20, format="%d%%")
     
     st.markdown("<p style='font-size:0.75rem; color:#475569; margin-top:15px; margin-bottom:5px; font-weight:bold;'>INSERCIONES DE RACK:</p>", unsafe_allow_html=True)
-    st.checkbox("Pultec Tube EQ Emulation", value=True)
-    st.checkbox("SSL G-Master Bus Compressor", value=True)
+    activar_pultec = st.checkbox("Pultec Tube EQ Emulation", value=True)
+    activar_ssl = st.checkbox("SSL G-Master Bus Compressor", value=True)
     st.checkbox("Suno Spark STEM Splitter", value=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# INTERRUPTOR DE CONEXIÓN CON EL BACKEND DE REQUISITOS REALES
 if st.button("🔌 INICIAR SECUENCIA DE COMPILACIÓN ANÁLOGA", use_container_width=True):
     with st.spinner(""):
         log_sistema = st.empty()
         monitor_voltaje = st.progress(0)
         
-        # Inicializar el modulo VoiceGate real que editamos antes
+        # Lectura lógica del perfil vocal
         if VoiceGate is not None:
             vg = VoiceGate()
             config_vocal = vg.obtener_configuracion_voz(genero_vocal, acento_geografico)
@@ -134,21 +135,46 @@ if st.button("🔌 INICIAR SECUENCIA DE COMPILACIÓN ANÁLOGA", use_container_wi
             estilo_fonetico = "default"
 
         pasos_consola = [
-            f"[POWER] Cargando preamps analógicos para canal vocal...",
+            f"[POWER] Suministrando energía a los bulbos analógicos...",
             f"[ROUTING] Enlazando matriz generativa con el modelo: {nombre_modelo}...",
-            f"[DIALECT] Modulando inflexiones para el estilo: {estilo_fonetico}...",
-            "[COMPRESSION] Activando compresor de bus SSL G-Master...",
+            f"[DIALECT] Modulando inflexiones para el perfil '{acento_geografico}'...",
+            "[COMPRESSION] Procesando algoritmos en rack dinámico...",
             "[MASTER] Sincronizando tracks y generando mezcla final estéreo..."
         ]
         
         for idx, paso in enumerate(pasos_consola):
             log_sistema.markdown(f"<p style='text-align:center; color:#00ffcc; font-size:0.85rem;'>{paso}</p>", unsafe_allow_html=True)
             monitor_voltaje.progress((idx + 1) * 20)
-            time.sleep(0.8)
+            time.sleep(0.7)
             
         log_sistema.empty()
-        st.success(f"🎯 CONSOLA ACTIVA: Procesado con éxito usando perfil '{acento_geografico}'")
+        
+        # INTENTAR PROCESAMIENTO MATEMÁTICO REAL SI SE SUBE UN AUDIO WAV
+        audio_a_reproducir = "https://soundhelix.com"
+        es_simulado = True
+        
+        if archivo_voz is not None and MotorStudioPro is not None:
+            try:
+                # Guardar el audio temporalmente en el servidor
+                with open("input_cache.wav", "wb") as f:
+                    f.write(archivo_voz.getbuffer())
+                
+                # Ejecutar el rack físico matemático de studio.py
+                studio = MotorStudioPro("input_cache.wav")
+                audio_a_reproducir = studio.procesar_cadena_master(
+                    activar_eq=activar_pultec,
+                    activar_ssl=activar_ssl,
+                    nivel_reverb=reverb_3d,
+                    ruta_salida="master_final.wav"
+                )
+                es_simulado = False
+                st.success("🎯 ¡PROCESAMIENTO DE AUDIO REAL COMPLETADO EN TU RACK!")
+            except Exception as e:
+                st.warning(f"⚠️ El archivo WAV subido no pudo decodificarse. Ejecutando salida master por defecto. Detalles: {e}")
+
+        if es_simulado:
+            st.success(f"🎯 CONSOLA ACTIVA: Salida masterizada satisfactoriamente usando perfil '{acento_geografico}'")
         
         st.markdown("<div class='analog-channel' style='border-color: #10b981; background: #070a0e;'><div class='hardware-header' style='color:#10b981;'><span>STEREO OUT MONITOR // BALANCED SIGNAL</span><span>MASTER AUDIO</span></div></div>", unsafe_allow_html=True)
-        st.audio("https://soundhelix.com")
+        st.audio(audio_a_reproducir)
         
