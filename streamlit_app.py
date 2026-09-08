@@ -1,5 +1,5 @@
-# Suno UI clone para Streamlit Community Cloud
-# Deploy: share.streamlit.io -> repo -> Main file path: streamlit_app.py
+# Suno-like Create para Streamlit Cloud
+# requirements.txt -> streamlit>=1.36.0
 
 from __future__ import annotations
 
@@ -17,32 +17,57 @@ st.set_page_config(
 st.markdown(
     """
 <style>
-html, body, [class*="css"], .stApp {
-  font-family: Inter, Segoe UI, Helvetica, Arial, sans-serif;
+#MainMenu, footer, header, .stDeployButton, [data-testid="stToolbar"],
+[data-testid="stDecoration"], [data-testid="stStatusWidget"] {display:none !important;}
+.stApp { background:#121212 !important; color:#f4f4f5 !important; }
+.block-container { padding:12px 16px 88px 16px !important; max-width:430px !important; }
+section[data-testid="stSidebar"] { background:#0b0b0d !important; }
+
+h1 { font-size:2.05rem !important; font-weight:800 !important; letter-spacing:-0.03em; margin:8px 0 14px !important; }
+p, label, .stMarkdown { color:#d4d4d8 !important; }
+
+div[data-testid="stTextArea"] textarea,
+div[data-testid="stTextInput"] input {
+  background:#18181b !important;
+  color:#f4f4f5 !important;
+  border:1px solid #3f3f46 !important;
+  border-radius:14px !important;
+  font-size:0.95rem !important;
 }
-#MainMenu, footer, header, .stDeployButton {visibility: hidden; height: 0;}
-.stApp { background: #121212; color: #f5f5f5; }
-.block-container { padding: 0.6rem 1rem 6.5rem 1rem; max-width: 460px; }
-section[data-testid="stSidebar"] { background: #0e0e12; }
-.logo { font-weight: 800; letter-spacing: .2em; font-size: 1.1rem; }
-.bar { display:flex; justify-content:space-between; align-items:center; margin: 4px 0 10px; }
-.pill { background:#2a2a2e; border-radius:999px; padding:4px 10px; font-size:12px; }
-.take { background:#18181b; border:1px solid #2a2a2e; border-radius:14px; padding:12px; margin:8px 0; }
-.muted { color:#a1a1aa; font-size:12px; }
+div[data-testid="stTextArea"] textarea { min-height:84px !important; }
+
+div[data-baseweb="select"] > div {
+  background:#18181b !important;
+  border:1px solid #3f3f46 !important;
+  border-radius:14px !important;
+  color:#f4f4f5 !important;
+  box-shadow:none !important;
+}
+div[data-baseweb="select"] { border-color:#3f3f46 !important; }
+
+[data-testid="stWidgetLabel"] { color:#a1a1aa !important; font-size:13px !important; }
+
 div.stButton > button {
-  width: 100%;
-  border: 0;
-  border-radius: 999px;
-  padding: .8rem 1rem;
-  font-weight: 700;
-  color: #fff;
-  background: linear-gradient(90deg,#ec4899,#f97316,#eab308);
+  border-radius:999px !important;
+  font-weight:650 !important;
+  border:1px solid #3f3f46 !important;
+  background:#18181b !important;
+  color:#e4e4e7 !important;
 }
-.stTextArea textarea, .stTextInput input {
-  background: #0f0f12;
-  color: #eee;
-  border-radius: 12px;
+div.stButton > button[kind="primary"],
+div.stButton > button[data-testid="baseButton-primary"] {
+  background: linear-gradient(90deg,#ec4899,#f97316,#eab308) !important;
+  color:#fff !important;
+  border:0 !important;
+  font-weight:800 !important;
+  padding:0.8rem 1rem !important;
 }
+
+.hdr { display:flex; justify-content:space-between; align-items:center; margin:2px 0 6px; }
+.logo { font-weight:800; letter-spacing:.28em; font-size:15px; }
+.chip { background:#27272a; color:#e4e4e7; border-radius:999px; padding:6px 10px; font-size:12px; }
+.card { background:#18181b; border:1px solid #27272a; border-radius:16px; padding:12px; margin:8px 0; }
+.muted { color:#a1a1aa; font-size:12px; }
 </style>
 """,
     unsafe_allow_html=True,
@@ -54,21 +79,6 @@ MODELS = {
     "Premier": ["v4", "v4.5", "v4.5+", "v5", "v5.5"],
 }
 CREDITS = {"Free": 50, "Pro": 2500, "Premier": 10000}
-COST = {"Simple": 10, "Custom": 10, "Sounds": 5, "Extend": 5}
-
-TOOLS = [
-    ("Simple", "Create", "Free", "Descripcion unica. 2 takes."),
-    ("Custom", "Create", "Free", "Title, lyrics, styles, exclude, sliders."),
-    ("Sounds", "Create", "Pro", "One-shot o loop + BPM + key."),
-    ("Add Audio", "Create", "Free", "Upload mp3/wav. En Cloud no persiste."),
-    ("Voices", "Identidad", "Pro", "Voz propia. Aqui solo selector demo."),
-    ("Personas", "Identidad", "Pro", "Reusar vibe de una take."),
-    ("Custom Models", "Identidad", "Pro", "Hasta 3. Demo de nombre."),
-    ("Inspo", "Create", "Pro", "Referencia de estilo."),
-    ("Extend", "Edit", "Free", "Alarga una take de Library."),
-    ("Stems", "Edit", "Pro", "Lista de stems demo."),
-    ("Studio 2.0", "Studio", "Premier", "Faders + chat. Sin VST ni MIDI hardware."),
-]
 
 
 def boot() -> None:
@@ -76,42 +86,19 @@ def boot() -> None:
     s.setdefault("plan", "Free")
     s.setdefault("credits", 50)
     s.setdefault("library", [])
+    s.setdefault("mode", "Simple")
+    s.setdefault("page", "Create")
     s.setdefault("chat", [])
-    s.setdefault("playing", "Sin pista")
-
-
-def pay(kind: str) -> bool:
-    n = COST[kind]
-    if st.session_state.credits < n:
-        st.error("Sin creditos. Sidebar > Recargar.")
-        return False
-    st.session_state.credits -= n
-    return True
-
-
-def push(title: str, style: str, mode: str, model: str) -> None:
-    now = datetime.now().strftime("%H:%M:%S")
-    for tag in ("A", "B"):
-        st.session_state.library.insert(
-            0,
-            {
-                "title": f"{title} ({tag})",
-                "style": style,
-                "mode": mode,
-                "model": model,
-                "time": now,
-            },
-        )
-    st.session_state.playing = f"{title} (A)"
 
 
 boot()
 
 with st.sidebar:
-    st.write("**SUNO**")
-    page = st.radio(
-        "Paginas",
-        ["Create", "Library", "Studio", "Explore", "Account"],
+    st.write("SUNO")
+    st.session_state.page = st.radio(
+        "Pagina",
+        ["Create", "Library", "Studio", "Account"],
+        index=["Create", "Library", "Studio", "Account"].index(st.session_state.page),
         label_visibility="collapsed",
     )
     plan = st.selectbox(
@@ -126,25 +113,42 @@ with st.sidebar:
     if st.button("Recargar creditos"):
         st.session_state.credits = CREDITS[st.session_state.plan]
         st.rerun()
-    st.caption("Cloud: el estado vive en la sesion. Al recargar el browser se pierde.")
 
 paid = st.session_state.plan != "Free"
-premier = st.session_state.plan == "Premier"
 models = MODELS[st.session_state.plan]
 prefer = "v5.5" if paid else "v4.5-all"
 
 st.markdown(
-    f'<div class="bar"><span class="logo">SUNO</span>'
-    f'<span class="pill">{st.session_state.plan} · {st.session_state.credits}</span></div>',
+    f'<div class="hdr"><div class="logo">SUNO</div>'
+    f'<div class="chip">{st.session_state.plan} · {st.session_state.credits}</div></div>',
     unsafe_allow_html=True,
 )
 
+page = st.session_state.page
+
 if page == "Create":
     st.title("Create")
-    mode = st.radio("Modo", ["Simple", "Custom", "Sounds"], horizontal=True)
-    model = st.selectbox("Modelo", models, index=models.index(prefer) if prefer in models else 0)
+
+    b1, b2, b3 = st.columns(3)
+    if b1.button("Simple", use_container_width=True):
+        st.session_state.mode = "Simple"
+        st.rerun()
+    if b2.button("Custom", use_container_width=True):
+        st.session_state.mode = "Custom"
+        st.rerun()
+    if b3.button("Sounds", use_container_width=True):
+        st.session_state.mode = "Sounds"
+        st.rerun()
+    st.caption("Modo: " + st.session_state.mode)
+
+    model = st.selectbox(
+        "Modelo",
+        models,
+        index=models.index(prefer) if prefer in models else 0,
+    )
     instrumental = st.toggle("Instrumental")
     title, style, lyrics = "Untitled", "", ""
+    mode = st.session_state.mode
 
     if mode == "Simple":
         style = st.text_area("Styles", placeholder="Resistente, tambores ligeros, rap afro")
@@ -155,32 +159,41 @@ if page == "Create":
         style = st.text_input("Styles", "dark synth pop, analog bass")
         lyrics = st.text_area("Lyrics", "[Verse]\n...\n[Chorus]\n...")
         st.text_input("Exclude styles")
-        st.radio("Vocal gender", ["Auto", "Male", "Female"], horizontal=True)
+        st.radio("Vocal gender", ["Auto", "Male", "Female"], horizontal=True, label_visibility="collapsed")
         st.slider("Weirdness", 0, 100, 50)
-        st.slider("Style influence", 0, 100, 50)
-        st.slider("Audio influence", 0, 100, 25)
+        st.slider("Style influence", 0, 100, 70)
         st.file_uploader("Add Audio", type=["mp3", "wav", "m4a"])
-        st.selectbox("Voices", ["Ninguna"] + (["Mi voz"] if paid else ["Requiere Pro"]))
-        st.selectbox("Inspo", ["Ninguna"] + (["Playlist"] if paid else ["Requiere Pro"]))
     else:
-        if not paid:
-            st.caption("Sounds es Pro en Suno. Demo abierta.")
         style = st.text_area("Sound", placeholder="whoosh, vinyl loop")
-        x, y, z = st.columns(3)
-        x.selectbox("Tipo", ["one-shot", "loop"])
-        y.text_input("BPM", "92")
-        z.text_input("Key", "A minor")
+        c1, c2, c3 = st.columns(3)
+        c1.selectbox("Tipo", ["one-shot", "loop"])
+        c2.text_input("BPM", "92")
+        c3.text_input("Key", "A minor")
 
-    if st.button("Create"):
+    if st.button("Create", type="primary"):
         if not (style or lyrics):
             st.error("Escribe styles o lyrics.")
-        elif pay(mode):
-            push(title, style or lyrics[:60], mode, model)
+        elif st.session_state.credits < 10:
+            st.error("Sin creditos.")
+        else:
+            st.session_state.credits -= 10
+            now = datetime.now().strftime("%H:%M")
+            for tag in ("A", "B"):
+                st.session_state.library.insert(
+                    0,
+                    {
+                        "title": f"{title} ({tag})",
+                        "style": style or lyrics[:50],
+                        "mode": mode,
+                        "model": model,
+                        "time": now,
+                    },
+                )
             st.rerun()
 
     for t in st.session_state.library[:2]:
         st.markdown(
-            f"<div class='take'><b>{t['title']}</b>"
+            f"<div class='card'><b>{t['title']}</b>"
             f"<div class='muted'>{t['model']} · {t['mode']} · {t['time']}</div>"
             f"<div class='muted'>{t['style']}</div></div>",
             unsafe_allow_html=True,
@@ -188,63 +201,29 @@ if page == "Create":
 
 elif page == "Library":
     st.title("Library")
-    tabs = st.tabs(["All", "Stems", "Personas", "Uploads"])
-    with tabs[0]:
-        if not st.session_state.library:
-            st.caption("Vacio.")
-        for i, t in enumerate(st.session_state.library):
-            st.write(f"**{t['title']}**")
-            st.caption(f"{t['model']} · {t['mode']} · {t['style']}")
-            if st.button("Extend", key=f"ex{i}") and pay("Extend"):
-                push(t["title"] + " ext", t["style"], "Extend", t["model"])
-                st.rerun()
-    with tabs[1]:
-        st.caption("Pro: vocals, drums, bass, other. Premier: split avanzado.")
-        if paid and st.session_state.library:
-            st.write("vocals\ndrums\nbass\nguitar\nkeys\nfx")
-    with tabs[2]:
-        if paid:
-            name = st.text_input("Nombre Persona")
-            if st.button("Guardar Persona") and name:
-                st.success(f"Persona demo: {name}")
-        else:
-            st.caption("Requiere Pro.")
-    with tabs[3]:
-        st.file_uploader("Upload", type=["mp3", "wav"], key="up2")
-        st.caption("Cloud no guarda el archivo al recargar.")
+    if not st.session_state.library:
+        st.caption("Vacio.")
+    for t in st.session_state.library:
+        st.markdown(
+            f"<div class='card'><b>{t['title']}</b><div class='muted'>{t['style']}</div></div>",
+            unsafe_allow_html=True,
+        )
 
 elif page == "Studio":
     st.title("Studio 2.0")
-    st.caption("Premier en Suno. Cloud: solo faders y chat. Sin MIDI/VST.")
-    if not premier:
-        st.caption("Plan actual sin Studio real.")
+    st.caption("En Cloud: faders y chat. Sin MIDI/VST.")
     a, b = st.columns(2)
     a.metric("BPM", 120)
     b.metric("Compas", "4/4")
-    for n in ("Vocals", "Drums", "Bass MIDI", "Synth"):
+    for n in ("Vocals", "Drums", "Bass", "Synth"):
         st.slider(n, 0, 100, 70)
     q = st.chat_input("Chat Studio")
     if q:
         st.session_state.chat.append(q)
     for m in st.session_state.chat:
-        st.write("Tu:", m)
-        st.write("Studio: demo. En Cloud no se sintetiza audio.")
-
-elif page == "Explore":
-    st.title("Explore")
-    q = st.text_input("Buscar")
-    st.caption("Sin red a suno.com desde Cloud en este clone.")
-    if q:
-        st.write("Demo:", q)
+        st.write(m)
 
 else:
     st.title("Account")
-    st.write("**Free** — $0 — 50 creditos/dia — v4.5-all — no comercial")
-    st.write("**Pro** — $8/mes anual — 2500 — v5.5 — Voices, stems, Sounds")
-    st.write("**Premier** — $24/mes anual — 10000 — Studio 2.0")
-    st.subheader("Herramientas")
-    for n, a, p, d in TOOLS:
-        st.write(f"**{n}** · {a} · min {p} — {d}")
-    st.caption("Precios 2026 suno.com/pricing. Verificar en vivo.")
-
-st.caption(f"Now playing: {st.session_state.playing} · sesion local Cloud")
+    st.write("Free $0 · Pro $8/mes anual · Premier $24/mes anual")
+    st.caption("Suno 2026. Verificar en suno.com/pricing.")
