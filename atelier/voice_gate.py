@@ -1,53 +1,91 @@
-import numpy as np
-import soundfile as sf
-import librosa
+import streamlit as st
+import requests
 
 class VoiceGate:
     def __init__(self):
-        """
-        Inicializa los motores basados en StyleTTS2 y Seed-VC (Clonación de Voz Abierta).
-        """
-        self.estilos_clonacion = {
-            "Español (Chile) - Coa / Flaite Urbano": "urbano_cl",
-            "Español (Chile) - Neutro Chileno": "neutro_cl",
-            "Español (Latinoamérica) - Neutro Internacional": "global_latam"
+        # Intentar extraer la llave segura que guardaste en los Secrets de Streamlit
+        self.api_key = st.secrets.get("ELEVENLABS_API_KEY", "")
+        
+        # Mapeo de IDs de modelos de voz pre-entrenados para el ecosistema S_FLOW
+        # (Se usan IDs estándar estables de ElevenLabs; puedes cambiarlos por clones propios)
+        self.acentos = {
+            "masculino": {
+                "Español (Chile) - Coa / Flaite Urbano": {
+                    "voice_id": "pNInz6obpgfr9ff95uU0", # ID de respaldo (Latam) hasta subir tu clon flaite
+                    "stability": 0.35,
+                    "similarity": 0.85
+                },
+                "Español (Chile) - Neutro Chileno": {
+                    "voice_id": "pNInz6obpgfr9ff95uU0",
+                    "stability": 0.50,
+                    "similarity": 0.75
+                },
+                "Español (Latinoamérica) - Neutro Internacional": {
+                    "voice_id": "pNInz6obpgfr9ff95uU0",
+                    "stability": 0.45,
+                    "similarity": 0.75
+                }
+            },
+            "femenino": {
+                "Español (Chile) - Coa / Flaite Urbano": {
+                    "voice_id": "EXAVITQu4vr4xnSDxMaL",
+                    "stability": 0.35,
+                    "similarity": 0.85
+                },
+                "Español (Chile) - Neutro Chileno": {
+                    "voice_id": "EXAVITQu4vr4xnSDxMaL",
+                    "stability": 0.50,
+                    "similarity": 0.75
+                }
+            }
         }
 
-    def clonar_con_librerias_locales(self, ruta_voz_usuario, acento_seleccionado, autotune_gain=20):
-        """
-        Simula el algoritmo de Seed-VC. Toma un archivo de audio subido (.wav o .mp3),
-        analiza sus frecuencias con Librosa y altera el tono y la velocidad 
-        para aproximarse al estilo fonético del acento elegido.
-        """
-        try:
-            # 1. Cargar el audio del usuario usando Librosa (Ingeniería de Audio)
-            y, sr = librosa.load(ruta_voz_usuario, sr=None)
-            
-            # 2. Emulación de Cambio de Tono y Formantes (Algoritmo Pitch-Shifting)
-            estilo = self.estilos_clonacion.get(acento_seleccionado, "neutro_cl")
-            
-            if estilo == "urbano_cl":
-                # Altera el tono sutilmente hacia arriba para imitar la entonación urbana
-                y_modificado = librosa.effects.pitch_shift(y, sr=sr, n_steps=1.5)
-                # Acelera un 5% el ritmo del habla característico
-                y_modificado = librosa.effects.time_stretch(y_modificado, rate=1.05)
-            elif estilo == "neutro_cl":
-                # Suaviza picos armónicos para un tono más plano de transmisión de radio
-                y_modificado = librosa.effects.pitch_shift(y, sr=sr, n_steps=-0.5)
-            else:
-                y_modificado = y
-                
-            # 3. Aplicar Autotune Cuántico según el slider de la pantalla
-            if autotune_gain > 50:
-                # Forza las notas a frecuencias fijas (Efecto T-Pain/Trap agresivo)
-                y_modificado = librosa.effects.remix(y_modificado, intervals=librosa.effects.split(y_modificado))
+    def obtener_configuracion_voz(self, genero, acento_seleccionado):
+        """ Filtra y extrae los diccionarios de configuración para la consola web """
+        genero_key = "masculino" if "male" in genero.lower() or "masculina" in genero.lower() else "femenino"
+        if genero_key in self.acentos:
+            return self.acentos[genero_key].get(
+                acento_seleccionado, 
+                self.acentos[genero_key]["Español (Chile) - Neutro Chileno"]
+            )
+        return {"voice_id": "pNInz6obpgfr9ff95uU0", "stability": 0.45, "similarity": 0.75}
 
-            # 4. Renderizar el nuevo archivo WAV procesado por el clon local
-            ruta_salida = f"audio_cache/clon_{estilo}.wav"
-            sf.write(ruta_salida, y_modificado, sr)
-            return ruta_salida
-            
-        except Exception as e:
-            print(f"Error en procesamiento local Seed-VC: {e}")
+    def generar_voz_por_api_real(self, texto, genero, acento_seleccionado):
+        """
+        Conexión directa a internet. Envía la lírica a ElevenLabs 
+        usando tu token secreto sk_... y descarga el archivo de audio.
+        """
+        if not self.api_key:
+            print("⚠️ [S_FLOW] No se detectó API Key en Secrets. Corriendo en modo simulación.")
             return None
             
+        config = self.obtener_configuracion_voz(genero, acento_seleccionado)
+        voice_id = config["voice_id"]
+        
+        url = f"https://elevenlabs.io{voice_id}"
+        headers = {
+            "Accept": "audio/mpeg",
+            "xi-api-key": self.api_key,
+            "Content-Type": "application/json"
+        }
+        data = {
+            "text": texto,
+            "model_id": "eleven_multilingual_v2", # El mejor modelo para captar modismos del español
+            "voice_settings": {
+                "stability": config["stability"],
+                "similarity_boost": config["similarity"]
+            }
+        }
+        
+        try:
+            response = requests.post(url, json=data, headers=headers)
+            if response.status_code == 200:
+                ruta_salida = "audio_cache/vocal_master_real.mp3"
+                with open(ruta_salida, "wb") as f:
+                    f.write(response.content)
+                return ruta_salida
+        except Exception as e:
+            print(f"Error llamando a la API de ElevenLabs: {e}")
+            
+        return None
+        
