@@ -6,17 +6,17 @@ from datetime import datetime
 from io import BytesIO
 import wave
 
-# 1. AJUSTES DE HARDWARE PREMIUM (SUNICFLOW v6.0)
+# 1. CONFIGURACIÓN DE PÁGINA SUPREMA DE HARDWARE
 st.set_page_config(
     page_title="SUNICFLOW // GENERATIVE MULTI-CHANNEL DAW",
     page_icon="🪐",
     layout="wide"
 )
 
-# Creación automática de directorios internos de caché
+# Creación automática de carpetas de caché
 os.makedirs("audio_cache", exist_ok=True)
 
-# Inyección de diseño industrial y texturas oscuras en CSS
+# Inyección de diseño industrial en CSS nativo
 st.markdown("""
     <style>
     .stApp {
@@ -85,41 +85,36 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# BARRA SUPERIOR DE CONSOLA
+# MARCO TELEMÉTRICO SUPERIOR
 st.markdown(
     "<div style='display:flex;justify-content:space-between;background:#020306;padding:12px 24px;border-bottom:2px solid #1e293b;font-size:0.75rem;color:#475569;font-weight:bold;'>"
     "<span>SUNICFLOW MAINFRAME // STATUS: ACTIVE</span>"
-    "<span>ENGINE: v6.0 HYBRID ELEVENLABS REAL PIPELINE</span></div>",
+    "<span>ENGINE: v6.0 HYBRID ELEVENLABS PIPELINE</span></div>",
     unsafe_allow_html=True
 )
 st.markdown("<h1 style='text-align:center;color:#fff;letter-spacing:8px;font-weight:900;margin-top:25px;'>🪐 SUNICFLOW STUDIO</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center;color:#00f2fe;font-size:0.8rem;letter-spacing:4px;margin-bottom:30px;'>ESTACIÓN DE AUDIO GENERATIVA • CLON CLOUD AUTO-HOSPEDADO</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;color:#00f2fe;font-size:0.8rem;letter-spacing:4px;margin-bottom:30px;'>DAW GENERATIVO • INTEGRACIÓN AUTO-HOSPEDADA</p>", unsafe_allow_html=True)
 
-# 2. INICIALIZACIÓN DE LA BASE DE DATOS DE HISTORIAL DE COMPOSICIONES
 if "db_tracks" not in st.session_state:
     st.session_state.db_tracks = [
         {"nombre": "Esquinas Oscuras (Trap Urbano CL)", "fecha": "08/09/2026", "perfil": "Flaite Urbano", "tipo": "Original Track"},
         {"nombre": "Sinfonía del Puerto (Neutro Mix)", "fecha": "07/09/2026", "perfil": "Neutro Chileno", "tipo": "Pure Instrumental"}
     ]
-if "chat_reverb" not in st.session_state:
-    st.session_state.chat_reverb = 35
-if "chat_tune" not in st.session_state:
-    st.session_state.chat_tune = 20
+if "chat_reverb" not in st.session_state: st.session_state.chat_reverb = 35
+if "chat_tune" not in st.session_state: st.session_state.chat_tune = 20
 
-# 3. MOTOR DE AUDIO NATIVO COMPLETO (SÍNTESIS CIENTÍFICA DE RITMOS URBANOS)
+# SÍNTESIS DIGITAL DE BATERÍAS Y ARPEGIOS (MOTOR LOCAL SEGURO)
 def sintetizar_beat_local(prompt, reverb_amt, duracion=6.0, sr=22050):
     t = np.linspace(0, duracion, int(sr * duracion), endpoint=False)
     texto = (prompt or "").lower()
 
-    # Calibración del ritmo según el Prompt de Entrada (Estilos del Clon de 2026)
-    if "reggaeton" in texto or "perreo" in texto:
+    if "reggaeton" in texto:
         kick_step, hat_step, bass_hz = 0.5, 0.25, 50
-    elif "drill" in texto or "london" in texto:
+    elif "drill" in texto:
         kick_step, hat_step, bass_hz = 0.4, 0.125, 45
     else:
-        kick_step, hat_step, bass_hz = 0.5, 0.125, 55  # Trap por defecto
+        kick_step, hat_step, bass_hz = 0.5, 0.125, 55
 
-    # Generación de ondas analógicas virtuales
     kick = np.sin(2 * np.pi * bass_hz * t) * np.exp(-4.0 * (t % kick_step))
     ruido = np.random.normal(0, 1, len(t))
     env_hat = ((t % hat_step) < 0.03).astype(float)
@@ -128,9 +123,17 @@ def sintetizar_beat_local(prompt, reverb_amt, duracion=6.0, sr=22050):
     snare_env = ((np.round((t % 1.0), 2) == 0.50)).astype(float)
     snare = ruido * snare_env * np.exp(-8.0 * (t % 0.5)) * 0.30
 
-    mix = kick * 0.7 + hats + snare
+    # Arpegio de Melodía Solucionado (Progresión de notas cerrada)
+    arpegio_notas = [110, 130, 165, 196]
+    patron_melodia = np.zeros(len(t))
+    for idx in range(int(duracion / 0.25)):
+        start_idx = int(idx * 0.25 * sr)
+        end_idx = int((idx + 1) * 0.25 * sr)
+        nota_actual = arpegio_notas[idx % len(arpegio_notas)]
+        patron_melodia[start_idx:end_idx] = np.sin(2 * np.pi * nota_actual * t[start_idx:end_idx]) * 0.08
+        
+    mix = kick * 0.7 + hats + snare + patron_melodia
 
-    # Efecto de Espacialidad / Reverb en el bus maestro
     if reverb_amt > 0:
         delay = int(sr * 0.08)
         wet = np.zeros_like(mix)
@@ -138,7 +141,6 @@ def sintetizar_beat_local(prompt, reverb_amt, duracion=6.0, sr=22050):
             wet[delay:] = mix[:-delay] * (reverb_amt / 200.0)
         mix = mix + wet
 
-    # Compresión y Normalización comercial de picos
     mix = mix / (np.max(np.abs(mix)) + 1e-9) * 0.85
     audio_i16 = np.int16(mix * 32767)
 
@@ -151,17 +153,13 @@ def sintetizar_beat_local(prompt, reverb_amt, duracion=6.0, sr=22050):
     buffer.seek(0)
     return buffer.read()
 
-# 4. MOTOR VOCAL REAL (CONEXIÓN DIRECTA CON LA API DE ELEVENLABS CLONE)
-def generar_voz_elevenlabs_real(texto_lírica, acento):
+# MOTOR VOCAL: CONEXIÓN REAL CON LA API DE ELEVENLABS CLONE
+def generar_voz_elevenlabs_real(texto_lirica, acento):
     api_key = st.secrets.get("ELEVENLABS_API_KEY", "")
     if not api_key:
-        return None  # Si no hay llave, el sistema hace bypass automático
+        return None
         
-    # Mapeo de IDs de voces según el menú táctil
-    id_voz = "pNInz6obpgfr9ff95uU0"  # ID por defecto (Latam)
-    if "Flaite Urbano" in acento:
-        id_voz = "pNInz6obpgfr9ff95uU0"  # Aquí puedes cambiarlo por tu ID de voz clonada
-        
+    id_voz = "pNInz6obpgfr9ff95uU0"
     url = f"https://elevenlabs.io{id_voz}"
     headers = {
         "Accept": "audio/mpeg",
@@ -169,7 +167,7 @@ def generar_voz_elevenlabs_real(texto_lírica, acento):
         "Content-Type": "application/json"
     }
     data = {
-        "text": texto_lírica,
+        "text": texto_lirica,
         "model_id": "eleven_multilingual_v2",
         "voice_settings": {"stability": 0.40, "similarity_boost": 0.80}
     }
@@ -181,51 +179,47 @@ def generar_voz_elevenlabs_real(texto_lírica, acento):
         return None
     return None
 
-# PESTAÑAS DE LA SUITE INDUSTRIAL CON EL ECOVISTEMA DE 2026 COMPLETE
+# PESTAÑAS DE NAVEGACIÓN
 tab_create, tab_studio, tab_explore, tab_pricing = st.tabs([
-    "⚡ 01. CREATE (CONSOLA)",
-    "🎛️ 02. STUDIO 2.0 (DAW)",
-    "📁 03. LIBRARY & COMMUNITY",
-    "💎 04. PLANES & CREDITS"
+    "⚡ 01. CREATE", "🎛️ 02. STUDIO", "📁 03. LIBRARY", "💎 04. PLANES"
 ])
 
 with tab_create:
-    interfaz_toggle = st.radio(
-        "MODO DE INTERFAZ DE GENERACIÓN:",
-        ["Simple Mode", "Custom / Advanced Mode"],
-        horizontal=True
-    )
+    interfaz_toggle = st.radio("MODO DE INTERFAZ DE GENERACIÓN:", ["Simple Mode", "Custom / Advanced Mode"], horizontal=True)
     col1, col2, col3 = st.columns([1.3, 1.3, 1.1], gap="large")
 
     with col1:
         st.markdown("<div class='sunic-rack'><div class='hardware-label'><span>CH 01 // COMPOSITION BUS</span><span>v6.0</span></div></div>", unsafe_allow_html=True)
         st.markdown("<div class='lcd-screen'>[SUNICFLOW CORE ACTIVE]<br>SYNTH REAL: TEXT-TO-AUDIO CLONE</div>", unsafe_allow_html=True)
-        prompt_musica = st.text_area(
-            "Describe la composición / beat instrumental:",
-            placeholder="Ej: Beat de Trap chileno, bajo 808 masivo, hi-hats rápidos o ritmos de Reggaeton..."
-        )
-        tipo_ingreso_letra = st.radio(
-            "Tipo de estructura de letra:",
-            ["Caja de Escritura Manual", "Generador Automático Coa/Urbano"],
-            horizontal=True
-        )
+        prompt_musica = st.text_area("Describe la canción / beat:", placeholder="Ej: Beat de Trap chileno, bajo 808 masivo...")
+        
+        tipo_ingreso_letra = st.radio("Tipo de estructura de letra:", ["Caja de Escritura Manual", "Generador Automático Coa/Urbano"], horizontal=True)
         letra_final_texto = ""
         if tipo_ingreso_letra == "Caja de Escritura Manual":
-            letra_final_texto = st.text_area("Letras manuales del artista:", placeholder="Escribe tus rimas urbanas aquí para pasarlas al clon de voz...")
+            letra_final_texto = st.text_area("Letras manuales:", placeholder="Escribe tus rimas aquí...")
         else:
-            tema_letra = st.text_input("Temática para barras automáticas:", placeholder="Ej: Superación, la pobla, maleanteo...")
+            tema_letra = st.text_input("Temática para barras:", placeholder="Ej: Superación, la pobla...")
             if st.button("📝 COMPONER BARRAS POR IA"):
                 letra_final_texto = "De menor sorteando la balacera en la cera, voh sai hermano que andamos a nuestra manera."
                 st.markdown(f"<div class='lcd-screen'>[LYRICS GENERATED]<br>{letra_final_texto}</div>", unsafe_allow_html=True)
+                
         if interfaz_toggle == "Custom / Advanced Mode":
             st.markdown("---")
-            exclusiones = st.text_input("Excluir de la mezcla (Exclusions):", placeholder="Ej: No heavy bass...")
+            exclusiones = st.text_input("Excluir de la mezcla:", placeholder="Ej: No heavy bass...")
             weirdness_pot = st.slider("WEIRDNESS CONTROL", 0, 100, 15)
             style_pot = st.slider("STYLE MATCH RATIO", 0, 100, 80)
 
     with col2:
-        st.markdown("<div class='sunic-rack vocal-rack'><div class='hardware-label' style='color:#ff007f;'><span>CH 02 // IDENTITY VOCAL GATE</span><span>STYLE TTS2 / SEED-VC</span></div></div>", unsafe_allow_html=True)
+        st.markdown("<div class='sunic-rack vocal-rack'><div class='hardware-label' style='color:#ff007f;'><span>CH 02 // IDENTITY VOCAL GATE</span><span>STYLE TTS2</span></div></div>", unsafe_allow_html=True)
         st.markdown("<div class='lcd-screen pink'>[PERSONA & VOICE SYNTH]<br>ENGINE PIPELINE: INTEGRATED</div>", unsafe_allow_html=True)
-        genero_vocal = st.radio("Género de voz neural:", ["Voz Masculina (Barítono)", "Voz Femenina (Soprano)"], horizontal=True)
+        genero_vocal = st.radio("Género de voz neural:", ["Voz Masculina", "Voz Femenina"], horizontal=True)
         acento_vocal = st.selectbox("Mapeo de Acento y Dialecto:", [
             "Español (Chile) - Coa / Flaite Urbano",
+            "Español (Chile) - Neutro Chileno",
+            "Español (Latinoamérica) - Neutro Internacional"
+        ])
+        ruteo_voz = st.selectbox("Estructura de entrada:", ["Voices", "Upload Audio", "Personas", "Inspo / Covers"])
+        audio_subido = st.file_uploader("Sube clips guía para Voice Conversion:", type=["wav", "mp3"])
+
+    with col3:
+        st.markdown("<div class='sunic-rack master-rack'><div class='hardware-label' style='color:#eab308;'><span>CH 03 // MASTER BUS</span><span>FX PIPELINE</span></div></div>", unsafe_allow_html=True)
