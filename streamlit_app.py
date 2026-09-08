@@ -1,12 +1,50 @@
 import streamlit as st
 import time
+import os
 from datetime import datetime
-from voice_gate import VoiceGate
 
-# Inicializar el módulo de voz
+# ==================== MÓDULO DE VOZ (VOICE GATE INTEGRADO) ====================
+class VoiceGate:
+    def __init__(self):
+        # Mapeo exacto alineado con las opciones del selectbox de Streamlit
+        self.acentos = {
+            "masculino": {
+                "Español (Chile) - Coa / Flaite Urbano": "es-CL-LorenzoNeural",
+                "Español (Chile) - Neutro Chileno": "es-CL-LorenzoNeural",
+                "Español (Latinoamérica) - Neutro Internacional": "es-MX-JorgeNeural",
+                "Español (Castellano - España)": "es-ES-AlvaroNeural",
+                "Inglés (EE.UU. - Hip-Hop Studio)": "en-US-ChristopherNeural",
+                "Inglés (Reino Unido - London Drill)": "en-GB-RyanNeural"
+            },
+            "femenino": {
+                "Español (Chile) - Coa / Flaite Urbano": "es-CL-CatalinaNeural",
+                "Español (Chile) - Neutro Chileno": "es-CL-CatalinaNeural",
+                "Español (Latinoamérica) - Neutro Internacional": "es-MX-DaliaNeural",
+                "Español (Castellano - España)": "es-ES-ElviraNeural",
+                "Inglés (EE.UU. - Hip-Hop Studio)": "en-US-JennyNeural",
+                "Inglés (Reino Unido - London Drill)": "en-GB-SoniaNeural"
+            }
+        }
+        os.makedirs("audio_cache", exist_ok=True)
+
+    def obtener_configuracion_voz(self, genero, acento_seleccionado):
+        genero_key = "masculino" if "male" in genero.lower() else "femenino"
+        if genero_key in self.acentos:
+            return self.acentos[genero_key].get(
+                acento_seleccionado, 
+                self.acentos[genero_key]["Español (Chile) - Neutro Chileno"]
+            )
+        return "es-CL-CatalinaNeural"
+
+    def procesar_texto_a_voz(self, texto, modelo_voz):
+        ruta_salida = "audio_cache/voz_generada.wav"
+        print(f"🗣️ Generando síntesis con el modelo: {modelo_voz}")
+        return ruta_salida
+
+# Inicializar motor de voz
 voice_system = VoiceGate()
 
-# 1. ARQUITECTURA DE DISEÑO: INTERFAZ MÁXIMA GENERATIVE DAW (SUNO 2.0 EMULATION)
+# ==================== ARQUITECTURA DE DISEÑO Y CONFIGURACIÓN ====================
 st.set_page_config(page_title="ATELIER CORE X - MAX GENERATIVE DAW", page_icon="🛸", layout="wide")
 
 st.markdown("""
@@ -43,7 +81,7 @@ if "db_tracks" not in st.session_state:
         {"nombre": "Sinfonía del Puerto (Neutro Mix)", "fecha": "08/2026", "perfil": "Neutro Chileno", "tipo": "Pure Instrumental"}
     ]
 
-# 2. PESTAÑAS DE NAVEGACIÓN PRINCIPAL
+# ==================== PESTAÑAS DE NAVEGACIÓN ====================
 tab_create, tab_studio, tab_library, tab_pricing = st.tabs(["🎵 CREATE (ZONA DE GENERACIÓN)", "🎛️ STUDIO 2.0 (DAW WEB)", "📁 LIBRARY & MONITORS", "💎 SUBSCRIPTION & PLANS"])
 
 # ==================== PESTAÑA 1: CREATE ====================
@@ -91,7 +129,6 @@ with tab_create:
             ]
         )
         
-        # Obtención e informe dinámico del modelo configurado en voice_gate.py
         modelo_activo = voice_system.obtener_configuracion_voz(genero_vocal, acento_geografico)
         st.caption(f"🎙️ Engine vocal activo: `{modelo_activo}`")
         
@@ -129,7 +166,6 @@ with tab_create:
                 time.sleep(0.7)
             log_box.empty()
             
-            # Procesamiento vía voice_gate.py
             audio_resultado = voice_system.procesar_texto_a_voz(prompt_musica, modelo_activo)
             st.success("🎯 TRACK COMPILADO Y MASTERIZADO CON ÉXITO")
             
