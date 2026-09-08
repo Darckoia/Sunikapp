@@ -1,0 +1,224 @@
+import re
+
+from .models import SongSpec
+
+
+class Orchestrator:
+    """
+    Convierte un prompt libre en una SongSpec estructurada.
+
+    Esta versión es LOCAL/DEMO:
+    no simula que existe una IA externa conectada.
+    Más adelante podrá delegar el análisis a un proveedor real.
+    """
+
+    def build_song_spec(self, prompt: str) -> SongSpec:
+        prompt = prompt.strip()
+
+        if not prompt:
+            raise ValueError("El prompt no puede estar vacío.")
+
+        return SongSpec(
+            title=self._extract_title(prompt),
+            genre=self._extract_genre(prompt),
+            subgenre=self._extract_subgenre(prompt),
+            language=self._extract_language(prompt),
+            bpm=self._extract_bpm(prompt),
+            key=self._extract_key(prompt),
+            duration_seconds=self._extract_duration(prompt),
+            structure=self._default_structure(),
+            instruments=self._extract_instruments(prompt),
+            vocal_style=self._extract_vocal_style(prompt),
+            production_instructions=prompt,
+            original_prompt=prompt,
+        )
+
+    def _extract_title(self, prompt: str) -> str:
+        match = re.search(
+            r"(?:título|titulo|title)\s*[:=-]\s*(.+)",
+            prompt,
+            re.IGNORECASE,
+        )
+
+        if match:
+            return match.group(1).strip().splitlines()[0][:100]
+
+        return "Sunikflow Demo"
+
+    def _extract_genre(self, prompt: str) -> str:
+        genres = [
+            "reggaeton",
+            "trap",
+            "hip hop",
+            "rap",
+            "pop",
+            "rock",
+            "electrónica",
+            "electronica",
+            "house",
+            "techno",
+            "drill",
+            "cumbia",
+            "bachata",
+            "salsa",
+            "r&b",
+        ]
+
+        prompt_lower = prompt.lower()
+
+        for genre in genres:
+            if genre in prompt_lower:
+                return genre
+
+        return "Unknown"
+
+    def _extract_subgenre(self, prompt: str) -> str:
+        keywords = [
+            "chileno",
+            "urbano",
+            "melódico",
+            "melodico",
+            "oscuro",
+            "romántico",
+            "romantico",
+            "old school",
+            "experimental",
+        ]
+
+        prompt_lower = prompt.lower()
+
+        found = [
+            keyword
+            for keyword in keywords
+            if keyword in prompt_lower
+        ]
+
+        return ", ".join(found)
+
+    def _extract_language(self, prompt: str) -> str:
+        prompt_lower = prompt.lower()
+
+        if "inglés" in prompt_lower or "ingles" in prompt_lower:
+            return "en"
+
+        if "noruego" in prompt_lower:
+            return "no"
+
+        if "portugués" in prompt_lower or "portugues" in prompt_lower:
+            return "pt"
+
+        return "es"
+
+    def _extract_bpm(self, prompt: str) -> int:
+        match = re.search(
+            r"(?:bpm|tempo)\s*[:=-]?\s*(\d{2,3})",
+            prompt,
+            re.IGNORECASE,
+        )
+
+        if match:
+            bpm = int(match.group(1))
+            return max(40, min(bpm, 240))
+
+        return 100
+
+    def _extract_key(self, prompt: str) -> str:
+        match = re.search(
+            r"(?:tonalidad|tono|key)\s*[:=-]?\s*"
+            r"([A-Ga-g](?:#|b)?(?:m|maj|min)?)",
+            prompt,
+            re.IGNORECASE,
+        )
+
+        if match:
+            return match.group(1)
+
+        return "C"
+
+    def _extract_duration(self, prompt: str) -> float:
+        match = re.search(
+            r"(\d+(?:\.\d+)?)\s*(?:segundos|seconds|s)\b",
+            prompt,
+            re.IGNORECASE,
+        )
+
+        if match:
+            return max(5.0, min(float(match.group(1)), 900.0))
+
+        match = re.search(
+            r"(\d+(?:\.\d+)?)\s*(?:minutos|min|m)\b",
+            prompt,
+            re.IGNORECASE,
+        )
+
+        if match:
+            minutes = float(match.group(1))
+            return max(5.0, min(minutes * 60, 900.0))
+
+        return 180.0
+
+    def _default_structure(self) -> list[str]:
+        return [
+            "intro",
+            "verse",
+            "chorus",
+            "verse",
+            "chorus",
+            "bridge",
+            "chorus",
+            "outro",
+        ]
+
+    def _extract_instruments(self, prompt: str) -> list[str]:
+        instruments = [
+            "piano",
+            "guitarra",
+            "guitar",
+            "bajo",
+            "bass",
+            "sintetizador",
+            "synth",
+            "drums",
+            "batería",
+            "percusión",
+            "percussion",
+            "808",
+            "strings",
+            "cuerdas",
+        ]
+
+        prompt_lower = prompt.lower()
+
+        return [
+            instrument
+            for instrument in instruments
+            if instrument in prompt_lower
+        ]
+
+    def _extract_vocal_style(self, prompt: str) -> str:
+        styles = [
+            "masculina",
+            "masculino",
+            "femenina",
+            "femenino",
+            "grave",
+            "aguda",
+            "melódica",
+            "melodica",
+            "rap",
+            "susurrada",
+            "agresiva",
+        ]
+
+        prompt_lower = prompt.lower()
+
+        found = [
+            style
+            for style in styles
+            if style in prompt_lower
+        ]
+
+        return ", ".join(found)
+
+
+orchestrator = Orchestrator()
