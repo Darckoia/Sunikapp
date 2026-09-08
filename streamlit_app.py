@@ -1,451 +1,226 @@
 import streamlit as st
-import numpy as np
-import os
-import requests
-from datetime import datetimeimport streamlit as st
-import numpy as np
-import os
-import requests
+import time
 from datetime import datetime
-from io import BytesIO
-import wave
+from voice_gate import VoiceGate
 
-# 1. CONFIGURACIÓN DE HARDWARE SUPREMO (SUNICFLOW v6.0)
-st.set_page_config(
-    page_title="SUNICFLOW // GENERATIVE MULTI-CHANNEL DAW",
-    page_icon="🪐",
-    layout="wide"
-)
+# Inicializar el módulo de voz
+voice_system = VoiceGate()
 
-# Creación automática de directorios internos de caché
-os.makedirs("audio_cache", exist_ok=True)
+# 1. ARQUITECTURA DE DISEÑO: INTERFAZ MÁXIMA GENERATIVE DAW (SUNO 2.0 EMULATION)
+st.set_page_config(page_title="ATELIER CORE X - MAX GENERATIVE DAW", page_icon="🛸", layout="wide")
 
-# Inyección de diseño industrial y texturas oscuras en CSS nativo
 st.markdown("""
-    <style>
-    .stApp {
-        background: radial-gradient(circle at top center, #0b0d19 0%, #030407 100%);
-        color: #cbd5e1;
-        font-family: 'Courier New', Courier, monospace;
-    }
-    .sunic-rack {
-        background: linear-gradient(180deg, #101424 0%, #090b14 100%);
-        border: 1px solid #1e293b;
-        border-top: 4px solid #00f2fe;
-        border-radius: 8px;
-        padding: 24px;
-        margin-bottom: 24px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-    }
-    .vocal-rack { border-top: 4px solid #ff007f; }
-    .master-rack { border-top: 4px solid #eab308; }
-    .player-rack {
-        border-top: 4px solid #10b981;
-        background: linear-gradient(180deg, #091a14 0%, #040d09 100%);
-        box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
-    }
-    .social-card {
-        background: #060811;
-        border: 1px solid #1e293b;
-        border-left: 4px solid #00f2fe;
-        padding: 16px;
-        border-radius: 6px;
-        margin-bottom: 12px;
-    }
-    .lcd-screen {
-        background-color: #03050a;
-        border: 1px solid #1e293b;
-        border-radius: 4px;
-        padding: 12px;
-        color: #00ffcc;
-        text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
-        font-size: 0.8rem;
-        margin-bottom: 15px;
-    }
-    .lcd-screen.pink { color: #ff007f; text-shadow: 0 0 10px rgba(255, 0, 127, 0.5); }
-    .stButton>button {
-        background: linear-gradient(90deg, #ff007f 0%, #7928ca 50%, #00f2fe 100%) !important;
-        color: #ffffff !important;
-        font-weight: 900 !important;
-        font-size: 1.2rem !important;
-        border: none !important;
-        border-radius: 50px !important;
-        padding: 18px 0px !important;
-        width: 100%;
-        letter-spacing: 3px;
-        text-transform: uppercase;
-    }
-    .led-bar { display: flex; gap: 6px; margin-bottom: 12px; }
-    .led-dot { width: 8px; height: 8px; border-radius: 50%; background: #111422; }
-    .led-dot.green { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
-    .led-dot.yellow { background: #eab308; box-shadow: 0 0 10px #eab308; }
-    .led-dot.red { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
-    .hardware-label {
-        font-size: 0.85rem; font-weight: 800; color: #475569;
-        letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px;
-        display: flex; justify-content: space-between;
-        border-bottom: 1px solid #1e293b; padding-bottom: 8px;
-    }
-    </style>
+<style> 
+.stApp { background: radial-gradient(circle at top center, #05060c 0%, #010204 100%); color: #e2e8f0; font-family: 'Courier New', Courier, monospace; } 
+.analog-channel { background: linear-gradient(180deg, #0e1220 0%, #080a12 100%); border: 1px solid #1e293b; border-top: 4px solid #00f2fe; border-radius: 6px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); } 
+.vocal-strip { border-top: 4px solid #ff007f; } 
+.master-strip { border-top: 4px solid #eab308; } 
+.lcd-display { background-color: #03050a; border: 1px solid #1e293b; border-radius: 4px; padding: 10px; color: #00ffcc; text-shadow: 0 0 8px rgba(0, 255, 204, 0.4); font-size: 0.8rem; margin-bottom: 12px; } 
+.lcd-display.pink { color: #ff007f; text-shadow: 0 0 8px rgba(255, 0, 127, 0.4); } 
+.lcd-display.yellow { color: #eab308; text-shadow: 0 0 8px rgba(234, 179, 8, 0.4); } 
+.track-card { background: #04060a; border: 1px solid #1e293b; padding: 12px; border-radius: 4px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; } 
+.stButton>button { background: linear-gradient(180deg, #10b981 0%, #047857 100%) !important; color: #ffffff !important; font-family: 'Courier New', monospace !important; font-weight: 900 !important; font-size: 1.2rem !important; border: 2px solid #34d399 !important; border-radius: 4px !important; padding: 16px 0px !important; width: 100%; letter-spacing: 2px; } 
+.stButton>button:hover { background: #10b981 !important; box-shadow: 0 0 25px rgba(52, 211, 147, 0.6); } 
+.led-matrix { display: flex; gap: 6px; margin-bottom: 10px; } 
+.led-bulb { width: 8px; height: 8px; border-radius: 50%; background: #1e293b; } 
+.led-bulb.active-green { background: #22c55e; box-shadow: 0 0 8px #22c55e; } 
+.led-bulb.active-yellow { background: #eab308; box-shadow: 0 0 8px #eab308; } 
+.led-bulb.active-red { background: #ef4444; box-shadow: 0 0 8px #ef4444; animation: blink 0.4s infinite alternate; } 
+@keyframes blink { 0% { opacity: 0.2; } 100% { opacity: 1; } } 
+</style>
 """, unsafe_allow_html=True)
 
-# MARCO TELEMÉTRICO SUPERIOR
-st.markdown(
-    "<div style='display:flex;justify-content:space-between;background:#020306;padding:12px 24px;border-bottom:2px solid #1e293b;font-size:0.75rem;color:#475569;font-weight:bold;'>"
-    "<span>SUNICFLOW MAINFRAME // STATUS: ACTIVE</span>"
-    "<span>ENGINE: v6.0 BLINDADO DE SINTAXIS</span></div>",
-    unsafe_allow_html=True
-)
-st.markdown("<h1 style='text-align:center;color:#fff;letter-spacing:8px;font-weight:900;margin-top:25px;'>🪐 SUNICFLOW STUDIO</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center;color:#00f2fe;font-size:0.8rem;letter-spacing:4px;margin-bottom:30px;'>DAW GENERATIVO • MEMORIA PERSISTENTE INTEGRADA</p>", unsafe_allow_html=True)
+# BARRA DE TELEMETRÍA GLOBAL
+st.markdown("<div style='display: flex; justify-content: space-between; background: #020306; padding: 10px 24px; border-bottom: 2px solid #1e293b; font-size: 0.75rem; color: #475569; letter-spacing:1px;'><span>MAINFRAME STATUS: ONLINE // MODEL: SUNO_v5.5_PREMIER</span><span>FINANCIAL CAPITAL: $775M SECURED</span></div>", unsafe_allow_html=True)
 
-# SOLUCIÓN FUTUROS ERRORES: ASIGNACIÓN DE ESTADOS PERSISTENTES DE MEMORIA
+st.markdown("<h1 style='text-align: center; color: #fff; letter-spacing: 6px; font-weight: 900; margin-top:20px; font-size:2.2rem;'>🪐 ATELIER STUDIO MATRIX NEURAL X</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #38bdf8; font-size: 0.8rem; letter-spacing: 4px; margin-bottom: 30px;'>NEXT-GEN DIGITAL AUDIO WORKSTATION (DAW 2.0)</p>", unsafe_allow_html=True)
+
+# INICIALIZACIÓN DE LA BASE DE DATOS LOCAL
 if "db_tracks" not in st.session_state:
     st.session_state.db_tracks = [
-        {"nombre": "Esquinas Oscuras (Trap Urbano CL)", "fecha": "08/09/2026", "perfil": "Flaite Urbano", "tipo": "Original Track"},
-        {"nombre": "Sinfonía del Puerto (Neutro Mix)", "fecha": "07/09/2026", "perfil": "Neutro Chileno", "tipo": "Pure Instrumental"}
+        {"nombre": "Esquinas Oscuras (Trap Urbano CL)", "fecha": "08/2026", "perfil": "Flaite Urbano", "tipo": "Remix / Cover"},
+        {"nombre": "Sinfonía del Puerto (Neutro Mix)", "fecha": "08/2026", "perfil": "Neutro Chileno", "tipo": "Pure Instrumental"}
     ]
-if "chat_reverb" not in st.session_state: st.session_state.chat_reverb = 35
-if "chat_tune" not in st.session_state: st.session_state.chat_tune = 20
-if "letra_ia_persistente" not in st.session_state: st.session_state.letra_ia_persistente = ""
 
-# SÍNTESIS DIGITAL DE BATERÍAS Y ARPEGIOS (MOTOR LOCAL SEGURO)
-def sintetizar_beat_local(prompt, reverb_amt, duracion=6.0, sr=22050):
-    t = np.linspace(0, duracion, int(sr * duracion), endpoint=False)
-    texto = (prompt or "").lower()
-
-    if "reggaeton" in texto:
-        kick_step, hat_step, bass_hz = 0.5, 0.25, 50
-    elif "drill" in texto:
-        kick_step, hat_step, bass_hz = 0.4, 0.125, 45
-    else:
-        kick_step, hat_step, bass_hz = 0.5, 0.125, 55
-
-    kick = np.sin(2 * np.pi * bass_hz * t) * np.exp(-4.0 * (t % kick_step))
-    ruido = np.random.normal(0, 1, len(t))
-    env_hat = ((t % hat_step) < 0.03).astype(float)
-    hats = ruido * env_hat * 0.20
-
-    snare_env = ((np.round((t % 1.0), 2) == 0.50)).astype(float)
-    snare = ruido * snare_env * np.exp(-8.0 * (t % 0.5)) * 0.30
-
-    arpegio_notas = [110, 130, 165, 196]
-    patron_melodia = np.zeros(len(t))
-    for idx in range(int(duracion / 0.25)):
-        start_idx = int(idx * 0.25 * sr)
-        end_idx = int((idx + 1) * 0.25 * sr)
-        nota_actual = arpegio_notas[idx % len(arpegio_notas)]
-        patron_melodia[start_idx:end_idx] = np.sin(2 * np.pi * nota_actual * t[start_idx:end_idx]) * 0.08
-        
-    mix = kick * 0.7 + hats + snare + patron_melodia
-
-    if reverb_amt > 0:
-        delay = int(sr * 0.08)
-        wet = np.zeros_like(mix)
-        if delay < len(mix):
-            wet[delay:] = mix[:-delay] * (reverb_amt / 200.0)
-        mix = mix + wet
-
-    mix = mix / (np.max(np.abs(mix)) + 1e-9) * 0.85
-    audio_i16 = np.int16(mix * 32767)
-
-    buffer = BytesIO()
-    with wave.open(buffer, "wb") as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(2)
-        wf.setframerate(sr)
-        wf.writeframes(audio_i16.tobytes())
-    buffer.seek(0)
-    return buffer.read()
-
-# MOTOR VOCAL: CONEXIÓN REAL CON LA API DE ELEVENLABS CLONE
-def generar_voz_elevenlabs_real(texto_lirica, acento):
-    api_key = st.secrets.get("ELEVENLABS_API_KEY", "")
-    if not api_key:
-        return None
-        
-    id_voz = "pNInz6obpgfr9ff95uU0"
-    url = f"https://elevenlabs.io{id_voz}"
-    headers = {
-        "Accept": "audio/mpeg",
-        "xi-api-key": api_key,
-        "Content-Type": "application/json"
-    }
-    data = {
-        "text": texto_lirica,
-        "model_id": "eleven_multilingual_v2",
-        "voice_settings": {"stability": 0.40, "similarity_boost": 0.80}
-    }
-    try:
-        response = requests.post(url, json=data, headers=headers)
-        if response.status_code == 200:
-            return response.content
-    except Exception:
-        return None
-    return None
-
-# PESTAÑAS DE NAVEGACIÓN GLOBAL
-tab_create, tab_studio, tab_explore, tab_pricing = st.tabs([
-    "⚡ 01. CREATE", "🎛️ 02. STUDIO", "📁 03. LIBRARY", "💎 04. PLANES"
-])
+# 2. PESTAÑAS DE NAVEGACIÓN PRINCIPAL
+tab_create, tab_studio, tab_library, tab_pricing = st.tabs(["🎵 CREATE (ZONA DE GENERACIÓN)", "🎛️ STUDIO 2.0 (DAW WEB)", "📁 LIBRARY & MONITORS", "💎 SUBSCRIPTION & PLANS"])
 
 # ==================== PESTAÑA 1: CREATE ====================
 with tab_create:
-    interfaz_toggle = st.radio("MODO DE INTERFAZ DE GENERACIÓN:", ["Simple Mode", "Custom / Advanced Mode"], horizontal=True)
+    modo_creacion = st.radio("TOGGLE SELECTION INTERFACE:", ["Simple Mode", "Custom / Advanced Mode"], horizontal=True)
+    
     col1, col2, col3 = st.columns([1.3, 1.3, 1.1], gap="large")
-
+    
     with col1:
-        st.markdown("<div class='sunic-rack'><div class='hardware-label'><span>CH 01 // COMPOSITION BUS</span><span>v6.0</span></div></div>", unsafe_allow_html=True)
-        st.markdown("<div class='lcd-screen'>[SUNICFLOW CORE ACTIVE]<br>SYNTH REAL: TEXT-TO-AUDIO CLONE</div>", unsafe_allow_html=True)
-        prompt_musica = st.text_area("Describe la canción / beat:", placeholder="Ej: Beat de Trap chileno, bajo 808 masivo...")
+        st.markdown("<div class='analog-channel'><div class='hardware-header'><span>CH 01 // COMPOSITION BUS</span><span>v5.5 COMPILER</span></div></div>", unsafe_allow_html=True)
+        st.markdown("<div class='lcd-display'>[PROMPT MATRIX ACTIVE]<br>GENERATION LENGTH: UP TO 8 MINS<br>STRUCTURE: INTRO/VERSE/CHORUS</div>", unsafe_allow_html=True)
         
-        tipo_ingreso_letra = st.radio("Tipo de estructura de letra:", ["Caja de Escritura Manual", "Generador Automático Coa/Urbano"], horizontal=True)
+        prompt_musica = st.text_area("Mapeo de Estilo o Género (Prompt):", placeholder="Ej: Fusión de Jazz Noir, Techno Industrial y Guitarras de Rock, tempo rápido...")
         
-        if tipo_ingreso_letra == "Caja de Escritura Manual":
-            letra_usuario_input = st.text_area("Letras manuales:", placeholder="Escribe tus rimas aquí de forma manual...")
-            st.session_state.letra_ia_persistente = letra_usuario_input
-        else:
-            tema_letra = st.text_input("Temática para barras:", placeholder="Ej: Superación, la pobla...")
-            if st.button("📝 COMPONER BARRAS POR IA"):
-                st.session_state.letra_ia_persistente = "De menor sorteando la balacera en la cera, voh sai hermano que andamos a nuestra manera."
-        
-        # Muestra la letra generada o escrita de forma persistente en la pantalla
-        if st.session_state.letra_ia_persistente:
-            st.markdown(f"<div class='lcd-screen'>[LYRICS LOADED BUFFER]<br>{st.session_state.letra_ia_persistente}</div>", unsafe_allow_html=True)
-                
-        if interfaz_toggle == "Custom / Advanced Mode":
-            st.markdown("---")
-            exclusiones = st.text_input("Excluir de la mezcla:", placeholder="Ej: No heavy bass...")
-            weirdness_pot = st.slider("WEIRDNESS CONTROL", 0, 100, 15)
-            style_pot = st.slider("STYLE MATCH RATIO", 0, 100, 80)
+        if modo_creacion == "Custom / Advanced Mode":
+            st.markdown("<p style='font-size:0.75rem; color:#00ffcc; font-weight:bold; margin-top:15px;'>✍️ LYRICS MANAGER (MÓDULO DE LETRA):</p>", unsafe_allow_html=True)
+            tipo_letra = st.radio("Ingreso de Lírica:", ["Caja de Escritura Manual", "Generador Automático por IA"], horizontal=True)
+            if tipo_letra == "Caja de Escritura Manual":
+                letra_manual = st.text_area("Escribe tus barras aquí:", placeholder="Ingresa tus versos y coros con modismos urbanos chilenos...")
+            else:
+                tema_letra = st.text_input("Concepto de Letra:", placeholder="Ej: La pobla, maleanteo, superación...")
+                if st.button("📝 COMPONER LETRA AUTOMÁTICA"):
+                    st.markdown("<div class='lcd-display'>[LYRICS IA CORE]<br>'De menor sorteando la balacera en la cera...<br>voh sa'i hermano que andamos a nuestra manera.'</div>", unsafe_allow_html=True)
+            
+            exclusiones = st.text_input("Instrumentos o Frecuencias Excluidas (Exclusions):", placeholder="Ej: No drums, no vocal echoes...")
+            weirdness = st.slider("Slider de Rareza / Weirdness", 0, 100, 15)
+            style_slider = st.slider("Slider de Estilo / Style Match", 0, 100, 75)
+        st.markdown("<div class='led-matrix'><div class='led-bulb active-green'></div><div class='led-bulb active-green'></div><div class='led-bulb active-green'></div><div class='led-bulb active-yellow'></div><div class='led-bulb'></div></div>", unsafe_allow_html=True)
 
     with col2:
-        st.markdown("<div class='sunic-rack vocal-rack'><div class='hardware-label' style='color:#ff007f;'><span>CH 02 // IDENTITY VOCAL GATE</span><span>STYLE TTS2</span></div></div>", unsafe_allow_html=True)
-        st.markdown("<div class='lcd-screen pink'>[PERSONA & VOICE SYNTH]<br>ENGINE PIPELINE: INTEGRATED</div>", unsafe_allow_html=True)
-        genero_vocal = st.radio("Género de voz neural:", ["Voz Masculina", "Voz Femenina"], horizontal=True)
-        acento_vocal = st.selectbox("Mapeo de Acento y Dialecto:", [
-            "Español (Chile) - Coa / Flaite Urbano",
-            "Español (Chile) - Neutro Chileno",
-            "Español (Latinoamérica) - Neutro Internacional"
-        ])
-
-from io import BytesIO
-import wave
-
-# 1. CONFIGURACIÓN DE PÁGINA SUPREMA DE HARDWARE
-st.set_page_config(
-    page_title="SUNICFLOW // GENERATIVE MULTI-CHANNEL DAW",
-    page_icon="🪐",
-    layout="wide"
-)
-
-# Creación automática de carpetas de caché
-os.makedirs("audio_cache", exist_ok=True)
-
-# Inyección de diseño industrial en CSS nativo
-st.markdown("""
-    <style>
-    .stApp {
-        background: radial-gradient(circle at top center, #0b0d19 0%, #030407 100%);
-        color: #cbd5e1;
-        font-family: 'Courier New', Courier, monospace;
-    }
-    .sunic-rack {
-        background: linear-gradient(180deg, #101424 0%, #090b14 100%);
-        border: 1px solid #1e293b;
-        border-top: 4px solid #00f2fe;
-        border-radius: 8px;
-        padding: 24px;
-        margin-bottom: 24px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-    }
-    .vocal-rack { border-top: 4px solid #ff007f; }
-    .master-rack { border-top: 4px solid #eab308; }
-    .player-rack {
-        border-top: 4px solid #10b981;
-        background: linear-gradient(180deg, #091a14 0%, #040d09 100%);
-        box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
-    }
-    .social-card {
-        background: #060811;
-        border: 1px solid #1e293b;
-        border-left: 4px solid #00f2fe;
-        padding: 16px;
-        border-radius: 6px;
-        margin-bottom: 12px;
-    }
-    .lcd-screen {
-        background-color: #03050a;
-        border: 1px solid #1e293b;
-        border-radius: 4px;
-        padding: 12px;
-        color: #00ffcc;
-        text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
-        font-size: 0.8rem;
-        margin-bottom: 15px;
-    }
-    .lcd-screen.pink { color: #ff007f; text-shadow: 0 0 10px rgba(255, 0, 127, 0.5); }
-    .stButton>button {
-        background: linear-gradient(90deg, #ff007f 0%, #7928ca 50%, #00f2fe 100%) !important;
-        color: #ffffff !important;
-        font-weight: 900 !important;
-        font-size: 1.2rem !important;
-        border: none !important;
-        border-radius: 50px !important;
-        padding: 18px 0px !important;
-        width: 100%;
-        letter-spacing: 3px;
-        text-transform: uppercase;
-    }
-    .led-bar { display: flex; gap: 6px; margin-bottom: 12px; }
-    .led-dot { width: 8px; height: 8px; border-radius: 50%; background: #111422; }
-    .led-dot.green { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
-    .led-dot.yellow { background: #eab308; box-shadow: 0 0 10px #eab308; }
-    .led-dot.red { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
-    .hardware-label {
-        font-size: 0.85rem; font-weight: 800; color: #475569;
-        letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px;
-        display: flex; justify-content: space-between;
-        border-bottom: 1px solid #1e293b; padding-bottom: 8px;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# MARCO TELEMÉTRICO SUPERIOR
-st.markdown(
-    "<div style='display:flex;justify-content:space-between;background:#020306;padding:12px 24px;border-bottom:2px solid #1e293b;font-size:0.75rem;color:#475569;font-weight:bold;'>"
-    "<span>SUNICFLOW MAINFRAME // STATUS: ACTIVE</span>"
-    "<span>ENGINE: v6.0 HYBRID ELEVENLABS PIPELINE</span></div>",
-    unsafe_allow_html=True
-)
-st.markdown("<h1 style='text-align:center;color:#fff;letter-spacing:8px;font-weight:900;margin-top:25px;'>🪐 SUNICFLOW STUDIO</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center;color:#00f2fe;font-size:0.8rem;letter-spacing:4px;margin-bottom:30px;'>DAW GENERATIVO • INTEGRACIÓN AUTO-HOSPEDADA</p>", unsafe_allow_html=True)
-
-if "db_tracks" not in st.session_state:
-    st.session_state.db_tracks = [
-        {"nombre": "Esquinas Oscuras (Trap Urbano CL)", "fecha": "08/09/2026", "perfil": "Flaite Urbano", "tipo": "Original Track"},
-        {"nombre": "Sinfonía del Puerto (Neutro Mix)", "fecha": "07/09/2026", "perfil": "Neutro Chileno", "tipo": "Pure Instrumental"}
-    ]
-if "chat_reverb" not in st.session_state: st.session_state.chat_reverb = 35
-if "chat_tune" not in st.session_state: st.session_state.chat_tune = 20
-
-# SÍNTESIS DIGITAL DE BATERÍAS Y ARPEGIOS (MOTOR LOCAL SEGURO)
-def sintetizar_beat_local(prompt, reverb_amt, duracion=6.0, sr=22050):
-    t = np.linspace(0, duracion, int(sr * duracion), endpoint=False)
-    texto = (prompt or "").lower()
-
-    if "reggaeton" in texto:
-        kick_step, hat_step, bass_hz = 0.5, 0.25, 50
-    elif "drill" in texto:
-        kick_step, hat_step, bass_hz = 0.4, 0.125, 45
-    else:
-        kick_step, hat_step, bass_hz = 0.5, 0.125, 55
-
-    kick = np.sin(2 * np.pi * bass_hz * t) * np.exp(-4.0 * (t % kick_step))
-    ruido = np.random.normal(0, 1, len(t))
-    env_hat = ((t % hat_step) < 0.03).astype(float)
-    hats = ruido * env_hat * 0.20
-
-    snare_env = ((np.round((t % 1.0), 2) == 0.50)).astype(float)
-    snare = ruido * snare_env * np.exp(-8.0 * (t % 0.5)) * 0.30
-
-    # Arpegio de Melodía Solucionado (Progresión de notas cerrada)
-    arpegio_notas = [110, 130, 165, 196]
-    patron_melodia = np.zeros(len(t))
-    for idx in range(int(duracion / 0.25)):
-        start_idx = int(idx * 0.25 * sr)
-        end_idx = int((idx + 1) * 0.25 * sr)
-        nota_actual = arpegio_notas[idx % len(arpegio_notas)]
-        patron_melodia[start_idx:end_idx] = np.sin(2 * np.pi * nota_actual * t[start_idx:end_idx]) * 0.08
+        st.markdown("<div class='analog-channel vocal-strip'><div class='hardware-header' style='color:#ff007f;'><span>CH 02 // VOCAL IDENTITY GATE</span><span>PERSONA SUITE</span></div></div>", unsafe_allow_html=True)
+        st.markdown("<div class='lcd-display pink'>[PERSONA VOICES INJECTOR]<br>VERIFICATION: VERIFIED<br>SOURCE: RECORDING / UPLOAD CLIP</div>", unsafe_allow_html=True)
         
-    mix = kick * 0.7 + hats + snare + patron_melodia
-
-    if reverb_amt > 0:
-        delay = int(sr * 0.08)
-        wet = np.zeros_like(mix)
-        if delay < len(mix):
-            wet[delay:] = mix[:-delay] * (reverb_amt / 200.0)
-        mix = mix + wet
-
-    mix = mix / (np.max(np.abs(mix)) + 1e-9) * 0.85
-    audio_i16 = np.int16(mix * 32767)
-
-    buffer = BytesIO()
-    with wave.open(buffer, "wb") as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(2)
-        wf.setframerate(sr)
-        wf.writeframes(audio_i16.tobytes())
-    buffer.seek(0)
-    return buffer.read()
-
-# MOTOR VOCAL: CONEXIÓN REAL CON LA API DE ELEVENLABS CLONE
-def generar_voz_elevenlabs_real(texto_lirica, acento):
-    api_key = st.secrets.get("ELEVENLABS_API_KEY", "")
-    if not api_key:
-        return None
+        genero_vocal = st.radio("Género Vocal Neural:", ["Male (Baritone Engine)", "Female (Soprano Engine)"], horizontal=True)
         
-    id_voz = "pNInz6obpgfr9ff95uU0"
-    url = f"https://elevenlabs.io{id_voz}"
-    headers = {
-        "Accept": "audio/mpeg",
-        "xi-api-key": api_key,
-        "Content-Type": "application/json"
-    }
-    data = {
-        "text": texto_lirica,
-        "model_id": "eleven_multilingual_v2",
-        "voice_settings": {"stability": 0.40, "similarity_boost": 0.80}
-    }
-    try:
-        response = requests.post(url, json=data, headers=headers)
-        if response.status_code == 200:
-            return response.content
-    except Exception:
-        return None
-    return None
-
-# PESTAÑAS DE NAVEGACIÓN
-tab_create, tab_studio, tab_explore, tab_pricing = st.tabs([
-    "⚡ 01. CREATE", "🎛️ 02. STUDIO", "📁 03. LIBRARY", "💎 04. PLANES"
-])
-
-with tab_create:
-    interfaz_toggle = st.radio("MODO DE INTERFAZ DE GENERACIÓN:", ["Simple Mode", "Custom / Advanced Mode"], horizontal=True)
-    col1, col2, col3 = st.columns([1.3, 1.3, 1.1], gap="large")
-
-    with col1:
-        st.markdown("<div class='sunic-rack'><div class='hardware-label'><span>CH 01 // COMPOSITION BUS</span><span>v6.0</span></div></div>", unsafe_allow_html=True)
-        st.markdown("<div class='lcd-screen'>[SUNICFLOW CORE ACTIVE]<br>SYNTH REAL: TEXT-TO-AUDIO CLONE</div>", unsafe_allow_html=True)
-        prompt_musica = st.text_area("Describe la canción / beat:", placeholder="Ej: Beat de Trap chileno, bajo 808 masivo...")
+        acento_geografico = st.selectbox(
+            "Configuración de Acento e Idioma Global:", 
+            [
+                "Español (Chile) - Coa / Flaite Urbano",
+                "Español (Chile) - Neutro Chileno",
+                "Español (Latinoamérica) - Neutro Internacional",
+                "Español (Castellano - España)",
+                "Inglés (EE.UU. - Hip-Hop Studio)",
+                "Inglés (Reino Unido - London Drill)"
+            ]
+        )
         
-        tipo_ingreso_letra = st.radio("Tipo de estructura de letra:", ["Caja de Escritura Manual", "Generador Automático Coa/Urbano"], horizontal=True)
-        letra_final_texto = ""
-        if tipo_ingreso_letra == "Caja de Escritura Manual":
-            letra_final_texto = st.text_area("Letras manuales:", placeholder="Escribe tus rimas aquí...")
-        else:
-            tema_letra = st.text_input("Temática para barras:", placeholder="Ej: Superación, la pobla...")
-            if st.button("📝 COMPONER BARRAS POR IA"):
-                letra_final_texto = "De menor sorteando la balacera en la cera, voh sai hermano que andamos a nuestra manera."
-                st.markdown(f"<div class='lcd-screen'>[LYRICS GENERATED]<br>{letra_final_texto}</div>", unsafe_allow_html=True)
-                
-        if interfaz_toggle == "Custom / Advanced Mode":
-            st.markdown("---")
-            exclusiones = st.text_input("Excluir de la mezcla:", placeholder="Ej: No heavy bass...")
-            weirdness_pot = st.slider("WEIRDNESS CONTROL", 0, 100, 15)
-            style_pot = st.slider("STYLE MATCH RATIO", 0, 100, 80)
-
-    with col2:
-        st.markdown("<div class='sunic-rack vocal-rack'><div class='hardware-label' style='color:#ff007f;'><span>CH 02 // IDENTITY VOCAL GATE</span><span>STYLE TTS2</span></div></div>", unsafe_allow_html=True)
-        st.markdown("<div class='lcd-screen pink'>[PERSONA & VOICE SYNTH]<br>ENGINE PIPELINE: INTEGRATED</div>", unsafe_allow_html=True)
-        genero_vocal = st.radio("Género de voz neural:", ["Voz Masculina", "Voz Femenina"], horizontal=True)
-        acento_vocal = st.selectbox("Mapeo de Acento y Dialecto:", [
-            "Español (Chile) - Coa / Flaite Urbano",
-            "Español (Chile) - Neutro Chileno",
-            "Español (Latinoamérica) - Neutro Internacional"
-        ])
-        ruteo_voz = st.selectbox("Estructura de entrada:", ["Voices", "Upload Audio", "Personas", "Inspo / Covers"])
-        audio_subido = st.file_uploader("Sube clips guía para Voice Conversion:", type=["wav", "mp3"])
+        # Obtención e informe dinámico del modelo configurado en voice_gate.py
+        modelo_activo = voice_system.obtener_configuracion_voz(genero_vocal, acento_geografico)
+        st.caption(f"🎙️ Engine vocal activo: `{modelo_activo}`")
+        
+        opcion_source = st.selectbox("Estructura de Origen / Inspo Model:", ["Upload Audio (Sube clip base de hasta 30 min)", "Voices (Graba o usa tu propia voz)", "Personas (Reutiliza identidad guardada)", "Inspo / Covers / Remix / Mashup"])
+        archivo_usuario = st.file_uploader("Sube tu archivo de audio de referencia (.wav, .mp3):", type=["wav", "mp3"])
 
     with col3:
-        st.markdown("<div class='sunic-rack master-rack'><div class='hardware-label' style='color:#eab308;'><span>CH 03 // MASTER BUS</span><span>FX PIPELINE</span></div></div>", unsafe_allow_html=True)
+        st.markdown("<div class='analog-channel master-strip'><div class='hardware-header' style='color:#eab308;'><span>CH 03 // EXPORT & MASTERING</span><span>OUT CONTROL</span></div></div>", unsafe_allow_html=True)
+        st.markdown("<small style='font-size:0.7rem; color:#64748b;'>VU CLIP METER:</small><div class='led-matrix'><div class='led-bulb active-green'></div><div class='led-bulb active-green'></div><div class='led-bulb active-green'></div><div class='led-bulb active-yellow'></div><div class='led-bulb active-red'></div></div>", unsafe_allow_html=True)
+        
+        st.markdown("<p style='font-size:0.75rem; color:#eab308; font-weight:bold;'>STEM SEPARATION MODES:</p>", unsafe_allow_html=True)
+        modo_stem = st.selectbox("Algoritmo de Extracción de Canales:", ["Auto Separation", "Split from mix (Vocals + Inst)", "Advanced Multi-Track (12 Stems)"])
+        
+        st.markdown("<p style='font-size:0.75rem; color:#475569; font-weight:bold; margin-top:15px;'>FEATURES EXTRAS:</p>", unsafe_allow_html=True)
+        st.checkbox("Suno Sounds (Generar efectos individuales)", value=False)
+        st.checkbox("Create Hooks (Clips cortos verticales estilo TikTok/Reels)", value=True)
+        st.checkbox("Extend / Crop / Replace Section (Alargar o recortar pista)", value=False)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    if st.button("🔌 INICIAR SECUENCIA DE COMPILACIÓN ANÁLOGA", use_container_width=True):
+        with st.spinner(""):
+            log_box = st.empty()
+            p_bar = st.progress(0)
+            
+            pasos = [
+                "[POWER] Alimentando bulbos del rack analógico...",
+                f"[ROUTING] Sincronizando modelo '{modelo_activo}' para '{acento_geografico}'...",
+                "[STEMS] Dividiendo la mezcla armónica mediante algoritmos avanzados...",
+                "[MASTER] Aplicando compresión comercial y alineando tiempos de fase..."
+            ]
+            for idx, paso in enumerate(pasos):
+                log_box.markdown(f"<p style='text-align:center; color:#00ffcc; font-size:0.85rem;'>{paso}</p>", unsafe_allow_html=True)
+                p_bar.progress((idx + 1) * 25)
+                time.sleep(0.7)
+            log_box.empty()
+            
+            # Procesamiento vía voice_gate.py
+            audio_resultado = voice_system.procesar_texto_a_voz(prompt_musica, modelo_activo)
+            st.success("🎯 TRACK COMPILADO Y MASTERIZADO CON ÉXITO")
+            
+        st.markdown("<div class='lcd-display yellow'>STEREO OUT MONITOR // MULTI-TRACK DOWNLOADS<br>MASTER AUDIO READY</div>", unsafe_allow_html=True)
+        st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")
+        sc1, sc2 = st.columns(2)
+        with sc1:
+            st.download_button("📥 Descargar Base Instrumental Limpia (WAV)", data=b"instrumental", file_name="instrumental_master.wav", use_container_width=True)
+        with sc2:
+            st.download_button("🎤 Descargar Acapella / Voz IA (WAV)", data=b"vocal", file_name="vocal_acapella.wav", use_container_width=True)
+
+# ==================== PESTAÑA 2: STUDIO 2.0 ====================
+with tab_studio:
+    st.markdown("<div class='analog-channel'><div class='hardware-header'><span>SUNO STUDIO 2.0 // ADVANCED DIGITAL AUDIO WORKSTATION</span><span>PREMIER ONLY</span></div></div>", unsafe_allow_html=True)
+    st.markdown("<div class='lcd-display'>[DAW TIMELINE RECOGNITION ACTIVE]<br>SAMPLE RATE: 32-bit / 48 kHz (UNLIMITED EXPORT)<br>MIDI WEB INTERFACE: ENABLED (RECOMMENDED IN CHROME)</div>", unsafe_allow_html=True)
+    
+    sc_col1, sc_col2 = st.columns([2, 1])
+    with sc_col1:
+        st.markdown("🎛️ **TIMELINE MULTITRACK & PIANO ROLL SIMULATOR:**")
+        st.selectbox("MIDI Prompt Input source:", ["Piano Roll Recording", "Velocity & Pitch Bend Map", "MIDI File Clip Input"])
+        st.slider("Consola de Automatización de Parámetros (Automation)", 0, 100, 45)
+        st.checkbox("Take Lanes (Generar variaciones por tomas separadas)", value=True)
+        st.checkbox("Remove FX (Eliminar Reverb/Delay para obtener pista limpia DRY)", value=False)
+    
+    with sc_col2:
+        st.markdown("🎚️ **RACK DE PLUGINS EN TIEMPO REAL:**")
+        st.text_input("Describe un plugin personalizado en lenguaje natural:", placeholder="Ej: Haz un tape saturation cálido con wobble...")
+        st.selectbox("Wavetable Synth Nativo:", ["Analog Sawtooth Wave", "Quantum Square Wave", "Sub-Bass Heavy Subwoofer"])
+        st.multiselect("Efectos Activos en el Master Bus:", ["Compressor", "EQ Pultec", "Reverb 3D", "Delay", "Distortion / Saturation", "Gate"], default=["Compressor", "Reverb 3D"])
+
+# ==================== PESTAÑA 3: LIBRARY ====================
+with tab_library:
+    st.markdown("### 📁 DATABASE: HISTORIAL DE COMPOSICIONES")
+    st.markdown("<div class='lcd-display'>TODAS TUS CANCIONES PRIVADAS POR DEFECTO // RECOGNIZED</div>", unsafe_allow_html=True)
+    
+    for track in st.session_state.db_tracks:
+        st.markdown(f"""
+        <div class='track-card'>
+            <div>
+                <strong>🎵 {track['nombre']}</strong><br>
+                <small style='color:#94a3b8;'>Fecha: {track['fecha']} | Perfil Vocal: {track['perfil']} | Origen: {track['tipo']}</small>
+            </div>
+            <span style='color:#10b981; font-size:0.75rem;'>COMMERCIAL RIGHTS SECURED</span>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    with st.expander("📖 PROGRAMAS CORPORATIVOS & RECURSOS DE MARCA"):
+        st.markdown("""
+        * **Suno: In Session:** Masterclasses y entrenamientos con profesionales de la industria musical.
+        * **Spark:** Incubadora oficial para artistas independientes (Grants, mentorías y marketing con derechos completos).
+        * **In the Cut:** Serie de videos oficiales con productores usando el motor en estudios reales de grabación.
+        * **Knowledge Base Oficial:** help.suno.com con soporte indexado en 5 categorías (Making Music, Rights, Billing, Mobile, DAW Studio).
+        """)
+
+# ==================== PESTAÑA 4: PRICING ====================
+with tab_pricing:
+    st.markdown("### 💎 PLANES DE SUSCRIPCIÓN COMERCIAL (TARIFAS 2026)")
+    st.markdown("<div class='lcd-display pink'>FACTURACIÓN ANUAL (PLANES MENSUALES TIENEN COSTOS DE $10 PRO / $30 PREMIER)</div>", unsafe_allow_html=True)
+    
+    pc1, pc2, pc3 = st.columns(3)
+    with pc1:
+        st.markdown("""
+        <div class='analog-channel'>
+            <h4>PLAN FREE</h4>
+            <p><strong>Costo:</strong> $0</p>
+            <p><strong>Créditos:</strong> 50 al día (~10 tracks)</p>
+            <p><strong>Modelo:</strong> v4.5-all</p>
+            <p><strong>Derechos comerciales:</strong> NO</p>
+            <p><strong>DAW Studio:</strong> NO</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with pc2:
+        st.markdown("""
+        <div class='analog-channel vocal-strip'>
+            <h4 style='color:#ff007f;'>PLAN PRO</h4>
+            <p><strong>Costo:</strong> $8 / mes (Anual)</p>
+            <p><strong>Créditos:</strong> 2,500 al mes (~500 tracks)</p>
+            <p><strong>Modelos:</strong> v4.5 a v5.5 (Advanced)</p>
+            <p><strong>Derechos comerciales:</strong> SÍ</p>
+            <p><strong>Features:</strong> Voices, Personas, 30 min Upload</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with pc3:
+        st.markdown("""
+        <div class='analog-channel master-strip'>
+            <h4 style='color:#eab308;'>PLAN PREMIER</h4>
+            <p><strong>Costo:</strong> $24 / mes (Anual)</p>
+            <p><strong>Créditos:</strong> 10,000 al mes (~2,000 tracks)</p>
+            <p><strong>Modelos:</strong> Todos (v5.5 Máximo)</p>
+            <p><strong>Derechos comerciales:</strong> SÍ</p>
+            <p><strong>Studio 2.0 DAW:</strong> SÍ (Completo)</p>
+        </div>
+        """, unsafe_allow_html=True)
