@@ -1,40 +1,123 @@
 import streamlit as st
 import time
 
-# 1. ARQUITECTURA DE DISEÑO: INTERFAZ CIBERNÉTICA DAW
-st.set_page_config(page_title="ATELIER CORE X - GENERATIVE DAW", page_icon="🛸", layout="wide")
+# 1. AJUSTES DE RACK DE ALTA FIDELIDAD (CSS MULTI-DIAL)
+st.set_page_config(page_title="ATELIER MASTER CONSOLE", page_icon="🎚️", layout="wide")
 
-# Inyección de estilos CSS usando texto directo
-st.markdown("<style> .stApp { background: radial-gradient(circle at top center, #070913 0%, #020305 100%); color: #f1f5f9; font-family: 'Courier New', Courier, monospace; } .industrial-rack { background: linear-gradient(180deg, #0b0e17 0%, #07090e 100%); border: 2px solid #1e293b; border-radius: 6px; padding: 22px; margin-bottom: 20px; box-shadow: 0 0 25px rgba(0, 242, 254, 0.03); } .hardware-header { font-size: 0.85rem; font-weight: bold; color: #475569; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; display: flex; justify-content: space-between; border-bottom: 1px solid #1e293b; padding-bottom: 6px; } .stButton>button { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important; color: #ffffff !important; font-family: 'Courier New', Courier, monospace !important; font-weight: bold !important; font-size: 1.1rem !important; border: 1px solid #38bdf8 !important; border-radius: 4px !important; padding: 16px 0px !important; width: 100%; letter-spacing: 2px; box-shadow: 0 0 20px rgba(56, 189, 248, 0.15); } .stButton>button:hover { background: #0ea5e9 !important; box-shadow: 0 0 30px rgba(56, 189, 248, 0.5); } .spectrum-box { display: flex; align-items: flex-end; height: 50px; gap: 3px; margin: 15px 0; background: #030508; padding: 6px; border-radius: 4px; border: 1px solid #1e293b; } .spectrum-lane { flex: 1; background: linear-gradient(to top, #0284c7, #38bdf8); height: 15%; animation: bounce 0.7s ease-in-out infinite alternate; } @keyframes bounce { 0% { height: 10%; } 100% { height: 95%; } } </style>", unsafe_allow_html=True)
+st.markdown("""
+    <style>
+    /* Chasis exterior de la mesa de mezclas Solid State Logic */
+    .stApp {
+        background: radial-gradient(circle at center, #0e1118 0%, #050608 100%);
+        color: #94a3b8;
+        font-family: 'Courier New', Courier, monospace;
+    }
+    
+    /* Módulos de hardware con textura de aluminio cepillado y tornillos virtuales */
+    .analog-channel {
+        background: linear-gradient(145deg, #181d28, #11151e);
+        border: 2px solid #2e374a;
+        border-radius: 4px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 15px 35px rgba(0,0,0,0.6);
+        border-top: 4px solid #00ffcc;
+    }
+    .vocal-strip { border-top: 4px solid #ff007f; }
+    .master-strip { border-top: 4px solid #eab308; }
+    
+    /* Pantallas LCD de Telemetría Digital */
+    .lcd-display {
+        background-color: #04080f;
+        border: 1px solid #1e293b;
+        border-radius: 4px;
+        padding: 10px;
+        font-family: 'Courier New', monospace;
+        color: #00ffcc;
+        text-shadow: 0 0 8px rgba(0, 255, 204, 0.5);
+        font-size: 0.8rem;
+        margin-bottom: 15px;
+        box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+    }
+    .lcd-display.pink { color: #ff007f; text-shadow: 0 0 8px rgba(255, 0, 127, 0.5); }
+    
+    /* Perillas y Potenciómetros Vintage */
+    .knob-matrix {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-top: 15px;
+    }
+    
+    /* Gran Botón de Inserción de Masterización (Botón de Encendido de Consola) */
+    .stButton>button {
+        background: linear-gradient(180deg, #10b981 0%, #047857 100%) !important;
+        color: #ffffff !important;
+        font-family: 'Courier New', monospace !important;
+        font-weight: 900 !important;
+        font-size: 1.3rem !important;
+        border: 2px solid #34d399 !important;
+        border-radius: 6px !important;
+        padding: 20px 0px !important;
+        width: 100%;
+        letter-spacing: 3px;
+        box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
+        text-transform: uppercase;
+    }
+    .stButton>button:hover {
+        background: #10b981 !important;
+        box-shadow: 0 0 40px rgba(52, 211, 153, 0.8);
+    }
+    
+    /* Luces LED de Clip e Indicadores de Señal */
+    .led-matrix {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+    .led-bulb { width: 8px; height: 8px; border-radius: 50%; background: #1e293b; }
+    .led-bulb.active-green { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+    .led-bulb.active-yellow { background: #eab308; box-shadow: 0 0 8px #eab308; }
+    .led-bulb.active-red { background: #ef4444; box-shadow: 0 0 8px #ef4444; animation: blink 0.4s infinite alternate; }
+    @keyframes blink { 0% { opacity: 0.2; } 100% { opacity: 1; } }
+    </style>
+""", unsafe_allow_html=True)
 
-# Telemetría de la barra superior
-st.markdown("<div style='display: flex; justify-content: space-between; background: #010204; padding: 8px 16px; border-bottom: 2px solid #0f172a; font-size: 0.75rem; color: #475569;'><span>SYSTEM: ONLINE // ENGINE_CORE: SUNO_v5.5_EMULATION</span><span>COMMERCIAL RIGHTS: UNLOCKED (PRO SUBSCRIPTION)</span></div>", unsafe_allow_html=True)
+# TELEMETRÍA DEL MAINFRAME SUPERIOR
+st.markdown("<div style='display: flex; justify-content: space-between; background: #07090e; padding: 10px 24px; border-bottom: 2px solid #1e293b; font-size: 0.75rem; color: #475569; letter-spacing:1px;'><span>SYSTEM CONFIG: SOLID_STATE_MATRIX_v5.5</span><span>AUDIO MATRIX ROUTING: ACTIVE</span></div>", unsafe_allow_html=True)
 
-st.markdown("<h1 style='text-align: center; color: #fff; letter-spacing: 4px; font-weight: 900; margin-top:15px;'>🪐 ATELIER STUDIO ENGINE X</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #38bdf8; font-size: 0.85rem; letter-spacing: 3px; margin-bottom: 30px;'>BROWSER-BASED GENERATIVE AUDIO WORKSTATION (STUDIO 2.0)</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #fff; letter-spacing: 6px; font-weight: 900; margin-top:20px; font-size:2.2rem;'>🎚️ ATELIER ANALOG MATRIX NEURAL X</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #64748b; font-size: 0.8rem; letter-spacing: 4px; margin-bottom: 35px;'>HYBRID HARDWARE SIMULATOR & GENERATIVE DAW STUDIO 2.0</p>", unsafe_allow_html=True)
 
-# 2. SECCIONES DISTRIBUIDAS (3 COLUMNAS TÉCNICAS)
-col1, col2, col3 = st.columns([1.3, 1.3, 1], gap="medium")
+# 2. CONSOLA DE MEZCLA DE TRIPLE PAÑO
+col1, col2, col3 = st.columns([1.3, 1.3, 1.1], gap="large")
 
 with col1:
-    # Fila 01: Motor de Composición
-    st.markdown("<div class='industrial-rack'><div class='hardware-header'><span>CH 01: COMPOSITION GEN</span><span>v5.5 ENGINE</span></div></div>", unsafe_allow_html=True)
-    prompt_musica = st.text_area("Cerebro Generativo (Prompt Multi-Género):", placeholder="Ej: Fusión de Jazz Noir, Techno Industrial y Guitarras de Rock, tempo rápido...")
-    weirdness = st.slider("Nivel de Rareza / Weirdness", 0, 100, 15)
-    ritmo_base = st.selectbox("Estructura Musical de Entrada:", ["Suno Studio Multitrack", "Custom Cross-Genre Hybrid", "Raw Beats & Instrumental Only"])
-
-    # Fila 04: Licencias y Stems
-    st.markdown("<div class='industrial-rack'><div class='hardware-header'><span>CH 04: SPARK EXTRACTOR</span><span>LICENSING & STEMS</span></div></div>", unsafe_allow_html=True)
-    st.checkbox("Separación de Pistas Activa (Extract up to 12 time-aligned WAV stems)", value=True)
-    st.checkbox("Sincronización con Programas Spark", value=False)
+    # PAÑO 01: INSTRUMENTAL RACK & MATRIX ROUTING
+    st.markdown("<div class='analog-channel'><div class='hardware-header'><span>STRIP CH_01 // SYSTEM COMPOSITION</span><span>MATRIX IN</span></div></div>", unsafe_allow_html=True)
+    
+    # Pantalla LCD integrada
+    st.markdown("<div class='lcd-display'>[PROMPT CORE 5.5]<br>STATUS: AWAITING MATRIX INPUT DATA...<br>FREQ RANGE: 20Hz - 22kHz</div>", unsafe_allow_html=True)
+    
+    prompt_musica = st.text_area("Mapeo de Frecuencias y Estilo (Prompt):", placeholder="Inyecta los géneros, tempo BPM e instrumentos aquí...")
+    
+    st.markdown("<p style='font-size:0.75rem; color:#475569; margin-bottom:2px; font-weight:bold;'>MATRIZ DE FILTROS GRANULARES:</p>", unsafe_allow_html=True)
+    weirdness = st.slider("WEIRDNESS POTENTIOMETER", 0, 100, 15, help="Nivel de rareza armónica")
+    ritmo_base = st.selectbox("INPUT GAIN STRUCTURE:", ["DAW Multi-Track Layering", "Cross-Genre Hybrid Fusion", "Raw Beat (No Vocals)"])
+    
+    # Luces de Señal del canal 1
+    st.markdown("<div class='led-matrix'><div class='led-bulb active-green'></div><div class='led-bulb active-green'></div><div class='led-bulb active-green'></div><div class='led-bulb active-yellow'></div><div class='led-bulb'></div></div>", unsafe_allow_html=True)
 
 with col2:
-    # Fila 02: Ingeniería Vocal
-    st.markdown("<div class='industrial-rack'><div class='hardware-header'><span>CH 02: IDENTITY VOCAL GATE</span><span>PERSONA VOICES</span></div></div>", unsafe_allow_html=True)
-    genero_vocal = st.radio("Género y Timbre de la Voz Neural:", ["Masculina (Barítono Studio)", "Femenina (Lírica Soprano)"], horizontal=True)
+    # PAÑO 02: VOCAL CHANNEL STRIP & DIAL GAIN
+    st.markdown("<div class='analog-channel vocal-strip'><div class='hardware-header' style='color:#ff007f;'><span>STRIP CH_02 // VOCAL & ACCENT RACK</span><span>SIDECHAIN</span></div></div>", unsafe_allow_html=True)
+    
+    st.markdown("<div class='lcd-display pink'>[PERSONA VOICES ARCHITECTURE]<br>DIALECT GATEWAY: READY<br>TIMBRE HARMONICS: SECURED</div>", unsafe_allow_html=True)
+    
+    genero_vocal = st.radio("TIMBRE FREQUENCY SELECTION:", ["Male (Baritone Engine)", "Female (Soprano Engine)"], horizontal=True)
     
     acento_geografico = st.selectbox(
-        "Acento de la Voz de IA (Ajustes de Dialecto):", 
+        "DIALECT GATE SETTING (ACENTOS MUNDIALES):", 
         [
             "Español (Chile) - Coa / Flaite Urbano",
             "Español (Chile) - Neutro Chileno",
@@ -44,51 +127,51 @@ with col2:
             "Inglés (Reino Unido - London Drill)"
         ]
     )
-    archivo_voz = st.file_uploader("Carga de Audio Propio / Grabación Acapella:", type=["wav", "mp3"])
+    
+    archivo_voz = st.file_uploader("EXTERNAL AUDIO SIDECHAIN (MAX 8 MIN):", type=["wav", "mp3"])
 
 with col3:
-    # Fila 03: Consola de Efectos
-    st.markdown("<div class='industrial-rack' style='border-color: #ec4899;'><div class='hardware-header' style='color:#ec4899;'><span>MASTER FX CONSOLE</span><span>ANALOG VIRTUAL</span></div></div>", unsafe_allow_html=True)
-    reverb_3d = st.slider("Espacialidad / Reverb Estéreo", 0, 100, 35, format="%d dB")
-    autotune_gate = st.slider("Afinación Cuántica (Autotune Pro)", 0, 100, 20, format="%d%%")
-    st.checkbox("Preamplificador de Bulbos Analógico Neve 1073", value=True)
-    st.checkbox("Compresor de Bus de Estado Sólido (SSL)", value=True)
+    # PAÑO 03: CONSOLA DE MASTERIZACIÓN FINAL (VIRTUAL HARDWARE)
+    st.markdown("<div class='analog-channel master-strip'><div class='hardware-header' style='color:#eab308;'><span>MASTER BUS // CHANNEL STRIP</span><span>OUT ROUTE</span></div></div>", unsafe_allow_html=True)
+    
+    # Vúmetros de clipping analógico
+    st.markdown("<small style='font-size:0.7rem; color:#64748b;'>VU CLIP METER:</small><div class='led-matrix'><div class='led-bulb active-green'></div><div class='led-bulb active-green'></div><div class='led-bulb active-green'></div><div class='led-bulb active-yellow'></div><div class='led-bulb active-red'></div></div>", unsafe_allow_html=True)
+    
+    # Mandos Giratorios Simulados por controles de volumen
+    st.markdown("<p style='font-size:0.75rem; color:#eab308; margin-bottom:2px; font-weight:bold;'>ANALOG HARDWARE KNOBS:</p>", unsafe_allow_html=True)
+    reverb_3d = st.slider("REVERB ROOM SIZE (FADER)", 0, 100, 35, format="%d dB")
+    autotune_gate = st.slider("QUANTUM AUTOTUNE (GAIN)", 0, 100, 20, format="%d%%")
+    
+    st.markdown("<p style='font-size:0.75rem; color:#475569; margin-top:15px; margin-bottom:5px; font-weight:bold;'>INSERCIONES DE RACK:</p>", unsafe_allow_html=True)
+    st.checkbox("Pultec Tube EQ Emulation", value=True)
+    st.checkbox("SSL G-Master Bus Compressor", value=True)
+    st.checkbox("Suno Spark STEM Splitter", value=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# 3. LANZAMIENTO COMPACTO DE COMPILACIÓN NEURAL
-if st.button("🎚️ COMPILAR COMPOSICIÓN Y CONFIGURAR MASTER", use_container_width=True):
+# 3. INTERRUPTOR PRINCIPAL DE ENCENIDO DE CONSOLA (POWER IN)
+if st.button("🔌 INICIAR SECUENCIA DE COMPILACIÓN ANÁLOGA", use_container_width=True):
     with st.spinner(""):
-        log_pantalla = st.empty()
-        barra_carga = st.progress(0)
+        log_sistema = st.empty()
+        monitor_voltaje = st.progress(0)
         
-        operaciones = [
-            "[PROCESS] Inicializando entorno generativo basado en navegador...",
-            "[AUDIO] Sintetizando base instrumental multi-género (Weirdness calibrado)...",
-            "[VOCAL] Inyectando inflexiones fonéticas del acento seleccionado...",
-            "[MASTER] Acoplando compresores analógicos sobre el bus estéreo maestro...",
-            "[FINISH] Alineando tiempos de fase y estructurando canales WAV stems..."
+        pasos_consola = [
+            "[POWER] Suministrando energía a los bulbos del preamplificador Neve...",
+            "[ROUTING] Enrutando señales del CH_01 a la matriz generativa v5.5...",
+            "[DIALECT] Modulando inflexiones fonéticas del acento seleccionado en CH_02...",
+            "[COMPRESSION] Aplicando compresión SSL G-Master sobre el bus maestro...",
+            "[MASTER] Ajustando fase armónica y estructurando los tracks en WAV stems..."
         ]
         
-        for idx, operacion in enumerate(operaciones):
-            log_pantalla.markdown(f"<p style='text-align:center; color:#38bdf8; font-size:0.9rem;'>{operacion}</p>", unsafe_allow_html=True)
-            barra_carga.progress((idx + 1) * 20)
-            time.sleep(0.8)
+        for idx, paso in enumerate(pasos_consola):
+            log_sistema.markdown(f"<p style='text-align:center; color:#00ffcc; font-size:0.85rem;'>{paso}</p>", unsafe_allow_html=True)
+            monitor_voltaje.progress((idx + 1) * 20)
+            time.sleep(0.9)
             
-        log_pantalla.empty()
-        st.success("🎯 Compilación finalizada con éxito. Pistas masterizadas listas en el monitor.")
+        log_sistema.empty()
+        st.success("🎯 SEÑAL MASTERIZADA SATISFACTORIAMENTE. AUDIO ENRUTADO AL MONITOR DE SALIDA.")
         
-        # Monitor de salida
-        st.markdown("<div class='industrial-rack' style='border-color: #22c55e;'><div class='hardware-header' style='color:#22c55e;'><span>MONITOR PRINCIPAL // STEREO OUT</span><span>DAW OUTPUT</span></div><div class='spectrum-box'><div class='spectrum-lane' style='animation-duration: 0.5s;'></div><div class='spectrum-lane' style='animation-duration: 1.2s; animation-delay: 0.1s;'></div><div class='spectrum-lane' style='animation-duration: 0.8s; animation-delay: 0.3s;'></div><div class='spectrum-lane' style='animation-duration: 1.5s; animation-delay: 0.2s;'></div><div class='spectrum-lane' style='animation-duration: 1.0s; animation-delay: 0.4s;'></div></div></div>", unsafe_allow_html=True)
+        # Tarjeta del monitor con diseño industrial de aluminio pesado
+        st.markdown("<div class='analog-channel' style='border-color: #10b981; background: #070a0e;'><div class='hardware-header' style='color:#10b981;'><span>STEREO OUT MONITOR // BALANCED SIGNAL</span><span>MASTER AUDIO</span></div></div>", unsafe_allow_html=True)
         st.audio("https://soundhelix.com")
-
-# 4. BASE DE CONOCIMIENTO CENTRAL
-st.markdown("---")
-with st.expander("📖 BASE DE CONOCIMIENTO CENTRAL DE AUDIO & RECURSOS"):
-    st.markdown("Explore las categorías del sistema integradas según los estándares de producción de la industria de audio generativo:")
-    st.markdown("* **1. Creación Musical & Controles:** Manipulación de Sliders de estilo, exclusión de frecuencias y control de género vocal.")
-    st.markdown("* **2. Cuentas & Facturación:** Administración del plan Pro, tokens diarios y control de regalías comerciales.")
-    st.markdown("* **3. Aplicación Móvil:** Compatibilidad adaptativa y responsive del DAW en plataformas móviles iOS y Android.")
-    st.markdown("* **4. Derechos de Propiedad:** Licencia de explotación comercial completa para distribución directa en plataformas.")
-    st.markdown("* **5. Configuración de Suno DAW Studio:** Suite de edición avanzada de letras, remezclas, reordenamiento de secciones y descarga de multitracks en alta fidelidad.")
-    
+        
