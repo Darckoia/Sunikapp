@@ -4,3 +4,4 @@ scipy
 librosa
 soundfile
 requests
+streamlit>=1.36.0
