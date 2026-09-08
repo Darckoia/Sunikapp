@@ -2,13 +2,25 @@ import streamlit as st
 import time
 import os
 
-# CREACIÓN AUTOMÁTICA DE CARPETAS DE CACHÉ PARA EVITAR CAÍDAS DEL SERVIDOR
+# CREACIÓN AUTOMÁTICA DE CARPETAS DE CACHÉ
 os.makedirs("audio_cache", exist_ok=True)
+
+# IMPORTACIÓN COMPACTA DE LOS COMPONENTES
+try:
+    from atelier.voice_gate import VoiceGate
+    from atelier.studio import MotorStudioPro
+except ImportError:
+    try:
+        from taller.voice_gate import VoiceGate
+        from taller.studio import MotorStudioPro
+    except ImportError:
+        VoiceGate = None
+        MotorStudioPro = None
 
 # CONFIGURACIÓN DE PÁGINA SUPREMA DE HARDWARE
 st.set_page_config(page_title="SUNICFLOW // GENERATIVE MULTI-CHANNEL DAW", page_icon="🪐", layout="wide")
 
-# INRECCIÓN DE DISEÑO INDUSTRIAL Y LUCES LED EN CSS ENCAPSULADO
+# INYECCIÓN DE DISEÑO INDUSTRIAL EN CSS
 st.markdown("""
     <style>
     .stApp {
@@ -70,20 +82,17 @@ st.markdown("<div style='display: flex; justify-content: space-between; backgrou
 st.markdown("<h1 style='text-align: center; color: #fff; letter-spacing: 8px; font-weight: 900; margin-top:25px;'>🪐 SUNICFLOW STUDIO</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #00f2fe; font-size: 0.8rem; letter-spacing: 5px; margin-bottom: 35px;'>EL DAW GENERATIVO DE VANGUARDIA DE LA ERA SÚPER-INTELIGENTE</p>", unsafe_allow_html=True)
 
-# INICIALIZACIÓN DE LA BASE DE DATOS DE HISTORIAL (SESSION STATE)
 if "db_tracks" not in st.session_state:
     st.session_state.db_tracks = [
         {"nombre": "Esquinas Oscuras (Trap Urbano CL)", "fecha": "08/2026", "perfil": "Flaite Urbano", "tipo": "Remix / Cover"},
         {"nombre": "Sinfonía del Puerto (Neutro Mix)", "fecha": "08/2026", "perfil": "Neutro Chileno", "tipo": "Pure Instrumental"}
     ]
 
-# VARIABLES DE ENLACE DIRECTO PARA EL CO-PILOT CHAT BAR
 if "chat_reverb" not in st.session_state:
     st.session_state.chat_reverb = 35
 if "chat_tune" not in st.session_state:
     st.session_state.chat_tune = 20
 
-# NAVEGACIÓN PRINCIPAL POR PESTAÑAS (ARQUITECTURA DE PLATAFORMA SUNO PRO)
 tab_create, tab_studio, tab_explore, tab_pricing = st.tabs(["⚡ 01. CREATE (GENERACIÓN)", "🎛️ 02. STUDIO 2.0 (DAW MULTITRACK)", "🪐 03. EXPLORE & COMMUNITY", "💎 04. PRICING & CLOUD"])
 
 # ==================== PESTAÑA 1: CREATE ====================
@@ -96,19 +105,19 @@ with tab_create:
         st.markdown("<div class='lcd-screen'>[SUNICFLOW CORE ACTIVE]<br>GENERATION MAX: 8 MINUTES TOTAL</div>", unsafe_allow_html=True)
         prompt_musica = st.text_area("Describa la Instrumentación de Fondo (Prompt):", placeholder="Ej: Ritmo de Reggaeton pesado mezclado con guitarras...")
         
-        st.markdown("<p style='font-size:0.75rem; color:#00ffcc; font-weight:bold;'>✍ nighttime; LYRICS MANAGER / MOTOR DE LÍRICAS:</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size:0.75rem; color:#00ffcc; font-weight:bold;'>✍️ LYRICS MANAGER / MOTOR DE LÍRICAS:</p>", unsafe_allow_html=True)
         tipo_ingreso_letra = st.radio("Tipo de Escritura:", ["Caja de Escritura Manual", "Generador Automático Coa/Urbano"], horizontal=True)
         
         if tipo_ingreso_letra == "Caja de Escritura Manual":
-            letra_usuario = st.text_area("Escribe tus barras o rimas manuales:", placeholder="Pega tus versos aquí de forma manual usando jerga urbana o coa...")
+            letra_usuario = st.text_area("Escribe tus barras o rimas manuales:", placeholder="Pega tus versos aquí de forma manual...")
         else:
             tema_letra = st.text_input("Ingresa la temática para tus rimas:", placeholder="Ej: La pobla, maleanteo...")
             if st.button("📝 COMPONER BARRAS CALLEJERAS"):
-                st.markdown("<div class='lcd-screen'>[LYRICS GENERATED]<br>'De menor sorteando la balacera en la cera...<br>voh sa'i hermano que andamos a nuestra manera.'</div>", unsafe_allow_html=True)
+                st.markdown("<div class='lcd-screen'>[LYRICS GENERATED]<br>De menor sorteando la balacera en la cera...<br>voh sai hermano que andamos a nuestra manera.</div>", unsafe_allow_html=True)
                 
         if interfaz_toggle == "Custom / Advanced Mode":
             st.markdown("---")
-            exclusiones = st.text_input("Instrumentos o Frecuencias Excluidas (Exclusions):", placeholder="Ej: No heavy bass...")
+            exclusiones = st.text_input("Instrumentos o Frecuencias Excluidas:", placeholder="Ej: No heavy bass...")
             weirdness_pot = st.slider("WEIRDNESS POTENTIOMETER", 0, 100, 15)
             style_pot = st.slider("STYLE POTENTIOMETER", 0, 100, 80)
         st.markdown("<div class='led-bar'><div class='led-dot green'></div><div class='led-dot green'></div><div class='led-dot green'></div><div class='led-dot yellow'></div><div class='led-dot'></div></div>", unsafe_allow_html=True)
@@ -122,14 +131,14 @@ with tab_create:
             "Configuración de Acento Geográfico e Idioma:",
             ["Español (Chile) - Coa / Flaite Urbano", "Español (Chile) - Neutro Chileno", "Español (Latinoamérica) - Neutro Internacional", "Español (Castellano - España)", "Inglés (EE.UU. - Hip-Hop Studio)", "Inglés (Reino Unido - London Drill)"]
         )
-        ruteo_voz = st.selectbox("Estructura de Entrada Externa:", ["Voices (Usa tu propia voz verificada)", "Upload Audio (Sube clip base)", "Personas (Identidad guardada)", "Inspo / Covers / Remix"])
+        ruteo_voz = st.selectbox("Estructura de Entrada Externa:", ["Voices (Usa tu propia voz)", "Upload Audio", "Personas", "Inspo / Covers / Remix"])
         audio_subido = st.file_uploader("Arrastra tu muestra de audio referencial (.wav):", type=["wav"])
 
     with col3:
         st.markdown("<div class='sunic-rack master-rack'><div class='hardware-label' style='color:#eab308;'><span>CH 03 // EXPORT & MASTER BUS</span><span>STEM EXTRACTOR</span></div></div>", unsafe_allow_html=True)
         st.markdown("<small style='font-size:0.7rem; color:#64748b;'>VU CLIP METER:</small><div class='led-bar'><div class='led-dot green'></div><div class='led-dot green'></div><div class='led-dot green'></div><div class='led-dot yellow'></div><div class='led-dot red'></div></div>", unsafe_allow_html=True)
         
-        algoritmo_stem = st.selectbox("Modos de Separación:", ["Auto Alignment Mode", "Split from mix (Voz + Pista)", "Advanced Multitrack (12 Stems)"])
+        algoritmo_stem = st.selectbox("Modos de Separación:", ["Auto Alignment Mode", "Split from mix", "Advanced Multitrack"])
         
         st.markdown("<p style='font-size:0.75rem; color:#eab308; font-weight:bold;'>🎚️ CONSOLA DE EFECTOS ANALÓGICOS:</p>", unsafe_allow_html=True)
         reverb_3d = st.slider("REVERB ROOM SIZE (FADER)", 0, 100, int(st.session_state.chat_reverb))
@@ -140,13 +149,13 @@ with tab_create:
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # 🔌 INTERRUPTOR PRINCIPAL DE TRANSMISIÓN (OPTIMIZADO PARA EVITAR COLA DE ESPERA)
     if st.button("🔌 TRANSMITIR SEÑAL Y COMPILAR EN S_FLOW", use_container_width=True):
         with st.spinner(""):
             log_terminal = st.empty()
             barra_progreso = st.progress(0)
             
-            pasos_motor = [
-                "[S_FLOW POWER] Inicializando racks analógicos en la nube...",
-                f"[ROUTING] Sincronizando moduladores para perfil '{acento_vocal}'...",
-                "[STEM SPLIT] Corriendo algoritmos de separación de fase acústica...",
+            # Textos limpios sin comillas internas conflictivas
+            log_terminal.markdown("<p style='text-align:center; color:#00ffcc;'>[S_FLOW POWER] Inicializando racks analógicos en la nube...</p>", unsafe_allow_html=True)
+            barra_progreso.progress(25)
+            time.sleep(0.4)
+
