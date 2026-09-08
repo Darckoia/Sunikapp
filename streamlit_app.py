@@ -1,229 +1,154 @@
-# Suno-like Create para Streamlit Cloud
-# requirements.txt -> streamlit>=1.36.0
-
-from __future__ import annotations
-
-from datetime import datetime
+# Host Streamlit Cloud + UI HTML (se ve como Suno).
+# requirements.txt:
+# streamlit>=1.36.0
 
 import streamlit as st
+import streamlit.components.v1 as components
 
-st.set_page_config(
-    page_title="Suno",
-    page_icon="S",
-    layout="centered",
-    initial_sidebar_state="collapsed",
-)
-
+st.set_page_config(page_title="Suno", layout="centered", initial_sidebar_state="collapsed")
 st.markdown(
     """
 <style>
-#MainMenu, footer, header, .stDeployButton, [data-testid="stToolbar"],
-[data-testid="stDecoration"], [data-testid="stStatusWidget"] {display:none !important;}
-.stApp { background:#121212 !important; color:#f4f4f5 !important; }
-.block-container { padding:12px 16px 88px 16px !important; max-width:430px !important; }
-section[data-testid="stSidebar"] { background:#0b0b0d !important; }
-
-h1 { font-size:2.05rem !important; font-weight:800 !important; letter-spacing:-0.03em; margin:8px 0 14px !important; }
-p, label, .stMarkdown { color:#d4d4d8 !important; }
-
-div[data-testid="stTextArea"] textarea,
-div[data-testid="stTextInput"] input {
-  background:#18181b !important;
-  color:#f4f4f5 !important;
-  border:1px solid #3f3f46 !important;
-  border-radius:14px !important;
-  font-size:0.95rem !important;
-}
-div[data-testid="stTextArea"] textarea { min-height:84px !important; }
-
-div[data-baseweb="select"] > div {
-  background:#18181b !important;
-  border:1px solid #3f3f46 !important;
-  border-radius:14px !important;
-  color:#f4f4f5 !important;
-  box-shadow:none !important;
-}
-div[data-baseweb="select"] { border-color:#3f3f46 !important; }
-
-[data-testid="stWidgetLabel"] { color:#a1a1aa !important; font-size:13px !important; }
-
-div.stButton > button {
-  border-radius:999px !important;
-  font-weight:650 !important;
-  border:1px solid #3f3f46 !important;
-  background:#18181b !important;
-  color:#e4e4e7 !important;
-}
-div.stButton > button[kind="primary"],
-div.stButton > button[data-testid="baseButton-primary"] {
-  background: linear-gradient(90deg,#ec4899,#f97316,#eab308) !important;
-  color:#fff !important;
-  border:0 !important;
-  font-weight:800 !important;
-  padding:0.8rem 1rem !important;
-}
-
-.hdr { display:flex; justify-content:space-between; align-items:center; margin:2px 0 6px; }
-.logo { font-weight:800; letter-spacing:.28em; font-size:15px; }
-.chip { background:#27272a; color:#e4e4e7; border-radius:999px; padding:6px 10px; font-size:12px; }
-.card { background:#18181b; border:1px solid #27272a; border-radius:16px; padding:12px; margin:8px 0; }
-.muted { color:#a1a1aa; font-size:12px; }
+#MainMenu, footer, header, .stDeployButton, [data-testid="stToolbar"] {display:none!important;}
+.stApp { background:#121212; }
+.block-container { padding:0 !important; max-width:430px !important; }
 </style>
 """,
     unsafe_allow_html=True,
 )
 
-MODELS = {
-    "Free": ["v4.5-all"],
-    "Pro": ["v4", "v4.5", "v4.5+", "v5", "v5.5"],
-    "Premier": ["v4", "v4.5", "v4.5+", "v5", "v5.5"],
+HTML = r"""
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family: Inter, Segoe UI, Helvetica, Arial, sans-serif; background:#121212; color:#f5f5f5; }
+  .wrap { max-width:430px; margin:0 auto; padding:12px 16px 96px; }
+  header { display:flex; justify-content:space-between; align-items:center; padding:8px 0 16px; }
+  .logo { font-weight:800; letter-spacing:.28em; font-size:15px; }
+  .chip { background:#2a2a2e; border-radius:999px; padding:5px 10px; font-size:12px; }
+  h1 { font-size:34px; font-weight:800; margin:0 0 16px; }
+  .modes { display:flex; background:#1a1a1d; border:1px solid #2a2a2e; border-radius:999px; padding:4px; margin-bottom:14px; }
+  .modes button { flex:1; border:0; background:transparent; color:#a1a1aa; padding:8px 6px; border-radius:999px; font-weight:600; }
+  .modes button.on { background:#3f3f46; color:#fff; }
+  .ver { font-size:13px; color:#d4d4d8; padding:8px 10px; }
+  .card { background:#18181b; border:1px solid #2a2a2e; border-radius:16px; padding:12px; margin:10px 0; }
+  .lab { font-size:13px; color:#a1a1aa; margin-bottom:8px; display:flex; justify-content:space-between; }
+  textarea, input, select {
+    width:100%; background:#0f0f12; color:#eee; border:1px solid #3f3f46;
+    border-radius:12px; padding:10px 12px; font: inherit;
+  }
+  textarea { min-height:78px; resize:vertical; }
+  .tags span { display:inline-block; background:#27272a; border:1px solid #3f3f46; border-radius:999px; padding:4px 8px; font-size:11px; margin:4px 4px 0 0; }
+  .create {
+    width:100%; margin-top:12px; border:0; border-radius:999px; padding:14px;
+    font-weight:800; color:#fff; font-size:16px;
+    background:linear-gradient(90deg,#ec4899,#f97316,#eab308);
+  }
+  .take { background:#18181b; border:1px solid #2a2a2e; border-radius:14px; padding:12px; margin-top:10px; }
+  .muted { color:#a1a1aa; font-size:12px; }
+  .player {
+    position:fixed; left:0; right:0; bottom:0; max-width:430px; margin:0 auto;
+    background:#18181b; border-top:1px solid #2a2a2e; padding:10px 16px 14px;
+    display:flex; gap:10px; align-items:center;
+  }
+  .cover { width:40px; height:40px; border-radius:8px; background:#3f3f46; }
+  .hidden { display:none; }
+  .opt { background:#0f0f12; border:1px solid #2a2a2e; border-radius:12px; padding:10px 12px; margin-top:8px; font-size:13px; color:#a1a1aa; display:flex; justify-content:space-between; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">SUNO</div>
+    <div class="chip" id="chip">Free · 50</div>
+  </header>
+  <h1>Create</h1>
+  <div class="modes">
+    <button class="on" id="mSimple" onclick="setMode('simple')">Simple</button>
+    <button id="mCustom" onclick="setMode('custom')">Advanced</button>
+    <div class="ver">v5.5</div>
+  </div>
+
+  <div id="pSimple">
+    <div class="card">
+      <div class="lab"><span>Styles</span></div>
+      <textarea id="stylesS" placeholder="Resistente, tambores ligeros, rap afro, dizi, hueco"></textarea>
+      <div class="tags"><span>resiliente</span><span>tambores</span></div>
+    </div>
+    <div class="card">
+      <div class="lab"><span>Lyrics</span></div>
+      <textarea id="lyricsS" placeholder="Start writing the lyrics, or leave this blank for the instrumental part."></textarea>
+    </div>
+  </div>
+
+  <div id="pCustom" class="hidden">
+    <div class="card">
+      <div class="lab"><span>Title</span></div>
+      <input id="titleC" value="Midnight Rain">
+    </div>
+    <div class="card">
+      <div class="lab"><span>Styles</span></div>
+      <textarea id="stylesC">dark synth pop, analog bass, intimate female vocal</textarea>
+    </div>
+    <div class="card">
+      <div class="lab"><span>Lyrics</span></div>
+      <textarea id="lyricsC">[Verse]
+...
+[Chorus]
+...</textarea>
+    </div>
+    <div class="card">
+      <div class="lab"><span>More options</span></div>
+      <div class="opt">Exclude styles <input id="ex" placeholder="country" style="max-width:55%"></div>
+      <div class="opt">Vocal gender
+        <select id="vg" style="max-width:45%"><option>Auto</option><option>Male</option><option>Female</option></select>
+      </div>
+      <div class="opt">Weirdness <input id="w" type="range" min="0" max="100" value="50" style="max-width:45%"></div>
+      <div class="opt">Style influence <input id="si" type="range" min="0" max="100" value="70" style="max-width:45%"></div>
+    </div>
+  </div>
+
+  <button class="create" onclick="create()">Create</button>
+  <div id="out"></div>
+</div>
+<div class="player">
+  <div class="cover"></div>
+  <div>
+    <div id="np" style="font-size:13px;font-weight:600">Nada en cola</div>
+    <div class="muted">Suno clone · demo local</div>
+  </div>
+</div>
+<script>
+let credits = 50, mode = 'simple';
+function setMode(m){
+  mode = m;
+  document.getElementById('mSimple').className = m==='simple' ? 'on' : '';
+  document.getElementById('mCustom').className = m==='custom' ? 'on' : '';
+  document.getElementById('pSimple').className = m==='simple' ? '' : 'hidden';
+  document.getElementById('pCustom').className = m==='custom' ? '' : 'hidden';
 }
-CREDITS = {"Free": 50, "Pro": 2500, "Premier": 10000}
+function create(){
+  const style = mode==='simple' ? document.getElementById('stylesS').value : document.getElementById('stylesC').value;
+  const lyrics = mode==='simple' ? document.getElementById('lyricsS').value : document.getElementById('lyricsC').value;
+  const title = mode==='simple' ? 'Untitled' : (document.getElementById('titleC').value || 'Untitled');
+  if(!style && !lyrics){ alert('Escribe styles o lyrics'); return; }
+  if(credits < 10){ alert('Sin creditos'); return; }
+  credits -= 10;
+  document.getElementById('chip').textContent = 'Free · ' + credits;
+  document.getElementById('np').textContent = title + ' (Take A)';
+  document.getElementById('out').innerHTML =
+    take(title,'A',style||lyrics) + take(title,'B',style||lyrics);
+}
+function take(title,tag,style){
+  return '<div class="take"><b>'+title+' ('+tag+')</b><div class="muted">v5.5 · '+mode+' · demo</div><div class="muted">'+style+'</div></div>';
+}
+</script>
+</body>
+</html>
+"""
 
-
-def boot() -> None:
-    s = st.session_state
-    s.setdefault("plan", "Free")
-    s.setdefault("credits", 50)
-    s.setdefault("library", [])
-    s.setdefault("mode", "Simple")
-    s.setdefault("page", "Create")
-    s.setdefault("chat", [])
-
-
-boot()
-
-with st.sidebar:
-    st.write("SUNO")
-    st.session_state.page = st.radio(
-        "Pagina",
-        ["Create", "Library", "Studio", "Account"],
-        index=["Create", "Library", "Studio", "Account"].index(st.session_state.page),
-        label_visibility="collapsed",
-    )
-    plan = st.selectbox(
-        "Plan",
-        ["Free", "Pro", "Premier"],
-        index=["Free", "Pro", "Premier"].index(st.session_state.plan),
-    )
-    if plan != st.session_state.plan:
-        st.session_state.plan = plan
-        st.session_state.credits = CREDITS[plan]
-        st.rerun()
-    if st.button("Recargar creditos"):
-        st.session_state.credits = CREDITS[st.session_state.plan]
-        st.rerun()
-
-paid = st.session_state.plan != "Free"
-models = MODELS[st.session_state.plan]
-prefer = "v5.5" if paid else "v4.5-all"
-
-st.markdown(
-    f'<div class="hdr"><div class="logo">SUNO</div>'
-    f'<div class="chip">{st.session_state.plan} · {st.session_state.credits}</div></div>',
-    unsafe_allow_html=True,
-)
-
-page = st.session_state.page
-
-if page == "Create":
-    st.title("Create")
-
-    b1, b2, b3 = st.columns(3)
-    if b1.button("Simple", use_container_width=True):
-        st.session_state.mode = "Simple"
-        st.rerun()
-    if b2.button("Custom", use_container_width=True):
-        st.session_state.mode = "Custom"
-        st.rerun()
-    if b3.button("Sounds", use_container_width=True):
-        st.session_state.mode = "Sounds"
-        st.rerun()
-    st.caption("Modo: " + st.session_state.mode)
-
-    model = st.selectbox(
-        "Modelo",
-        models,
-        index=models.index(prefer) if prefer in models else 0,
-    )
-    instrumental = st.toggle("Instrumental")
-    title, style, lyrics = "Untitled", "", ""
-    mode = st.session_state.mode
-
-    if mode == "Simple":
-        style = st.text_area("Styles", placeholder="Resistente, tambores ligeros, rap afro")
-        if not instrumental:
-            lyrics = st.text_area("Lyrics", placeholder="Letra o vacio")
-    elif mode == "Custom":
-        title = st.text_input("Title", "Midnight Rain")
-        style = st.text_input("Styles", "dark synth pop, analog bass")
-        lyrics = st.text_area("Lyrics", "[Verse]\n...\n[Chorus]\n...")
-        st.text_input("Exclude styles")
-        st.radio("Vocal gender", ["Auto", "Male", "Female"], horizontal=True, label_visibility="collapsed")
-        st.slider("Weirdness", 0, 100, 50)
-        st.slider("Style influence", 0, 100, 70)
-        st.file_uploader("Add Audio", type=["mp3", "wav", "m4a"])
-    else:
-        style = st.text_area("Sound", placeholder="whoosh, vinyl loop")
-        c1, c2, c3 = st.columns(3)
-        c1.selectbox("Tipo", ["one-shot", "loop"])
-        c2.text_input("BPM", "92")
-        c3.text_input("Key", "A minor")
-
-    if st.button("Create", type="primary"):
-        if not (style or lyrics):
-            st.error("Escribe styles o lyrics.")
-        elif st.session_state.credits < 10:
-            st.error("Sin creditos.")
-        else:
-            st.session_state.credits -= 10
-            now = datetime.now().strftime("%H:%M")
-            for tag in ("A", "B"):
-                st.session_state.library.insert(
-                    0,
-                    {
-                        "title": f"{title} ({tag})",
-                        "style": style or lyrics[:50],
-                        "mode": mode,
-                        "model": model,
-                        "time": now,
-                    },
-                )
-            st.rerun()
-
-    for t in st.session_state.library[:2]:
-        st.markdown(
-            f"<div class='card'><b>{t['title']}</b>"
-            f"<div class='muted'>{t['model']} · {t['mode']} · {t['time']}</div>"
-            f"<div class='muted'>{t['style']}</div></div>",
-            unsafe_allow_html=True,
-        )
-
-elif page == "Library":
-    st.title("Library")
-    if not st.session_state.library:
-        st.caption("Vacio.")
-    for t in st.session_state.library:
-        st.markdown(
-            f"<div class='card'><b>{t['title']}</b><div class='muted'>{t['style']}</div></div>",
-            unsafe_allow_html=True,
-        )
-
-elif page == "Studio":
-    st.title("Studio 2.0")
-    st.caption("En Cloud: faders y chat. Sin MIDI/VST.")
-    a, b = st.columns(2)
-    a.metric("BPM", 120)
-    b.metric("Compas", "4/4")
-    for n in ("Vocals", "Drums", "Bass", "Synth"):
-        st.slider(n, 0, 100, 70)
-    q = st.chat_input("Chat Studio")
-    if q:
-        st.session_state.chat.append(q)
-    for m in st.session_state.chat:
-        st.write(m)
-
-else:
-    st.title("Account")
-    st.write("Free $0 · Pro $8/mes anual · Premier $24/mes anual")
-    st.caption("Suno 2026. Verificar en suno.com/pricing.")
+components.html(HTML, height=780, scrolling=True)
