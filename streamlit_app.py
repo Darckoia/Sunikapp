@@ -1,5 +1,6 @@
 import streamlit as st
 import numpy as np
+import base64
 import os
 
 # CREACIÓN AUTOMÁTICA DE CARPETAS DE CACHÉ
@@ -8,7 +9,7 @@ os.makedirs("audio_cache", exist_ok=True)
 # CONFIGURACIÓN DE PÁGINA SUPREMA DE HARDWARE
 st.set_page_config(page_title="SUNICFLOW // GENERATIVE MULTI-CHANNEL DAW", page_icon="🪐", layout="wide")
 
-# INYECCIÓN DE DISEÑO INDUSTRIAL EN CSS
+# INYECCIÓN DE DISEÑO INDUSTRIAL Y REPRODUCTOR PREMIUM EN CSS
 st.markdown("""
     <style>
     .stApp {
@@ -28,6 +29,21 @@ st.markdown("""
     .vocal-rack { border-top: 4px solid #ff007f; }
     .master-rack { border-top: 4px solid #eab308; }
     .social-card { background: #060811; border: 1px solid #1e293b; border-left: 4px solid #a855f7; padding: 16px; border-radius: 6px; margin-bottom: 12px; }
+    
+    /* REPRODUCTOR MULTIMEDIA CIBERNÉTICO PREMIUM CONTROL */
+    .audio-player-container {
+        background: #040712;
+        border: 2px solid #10b981;
+        border-radius: 6px;
+        padding: 15px;
+        margin-top: 15px;
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+    }
+    audio {
+        width: 100%;
+        filter: invert(1) hue-rotate(90deg); /* Adapta el color al verde neón de SunicFlow */
+    }
+    
     .lcd-screen {
         background-color: #03050a;
         border: 1px solid #1e293b;
@@ -40,6 +56,7 @@ st.markdown("""
     }
     .lcd-screen.pink { color: #ff007f; text-shadow: 0 0 10px rgba(255, 0, 127, 0.5); }
     .lcd-screen.yellow { color: #eab308; text-shadow: 0 0 10px rgba(234, 179, 8, 0.5); }
+    
     .stButton>button {
         background: linear-gradient(90deg, #ff007f 0%, #7928ca 50%, #00f2fe 100%) !important;
         color: #ffffff !important;
@@ -58,22 +75,22 @@ st.markdown("""
     .led-dot { width: 8px; height: 8px; border-radius: 50%; background: #111422; }
     .led-dot.green { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
     .led-dot.yellow { background: #eab308; box-shadow: 0 0 10px #eab308; }
-    .led-dot.red { background: #ef4444; box-shadow: 0 0 10px #ef4444; animation: pulse 0.3s infinite alternate; }
-    @keyframes pulse { 0% { opacity: 0.3; } 100% { opacity: 1; } }
+    .led-dot.red { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
     .hardware-label { font-size: 0.85rem; font-weight: 800; color: #475569; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; display: flex; justify-content: space-between; border-bottom: 1px solid #1e293b; padding-bottom: 8px; }
     </style>
 """, unsafe_allow_html=True)
 
 # MARCO TELEMÉTRICO SUPERIOR
-st.markdown("<div style='display: flex; justify-content: space-between; background: #020306; padding: 12px 24px; border-bottom: 2px solid #1e293b; font-size: 0.75rem; color: #475569; font-weight:bold;'><span>SUNICFLOW MAINFRAME // STATUS: ACTIVE</span><span>ENGINE: v6.0 INTERNAL HARDWARE // INTEGRACIÓN COMPLETA</span></div>", unsafe_allow_html=True)
+st.markdown("<div style='display: flex; justify-content: space-between; background: #020306; padding: 12px 24px; border-bottom: 2px solid #1e293b; font-size: 0.75rem; color: #475569; font-weight:bold;'><span>SUNICFLOW MAINFRAME // STATUS: ACTIVE</span><span>ENGINE: v6.0 HTML5 CONTROLS // INTEGRACIÓN DE BIBLIOTECA COMPLETA</span></div>", unsafe_allow_html=True)
 
 st.markdown("<h1 style='text-align: center; color: #fff; letter-spacing: 8px; font-weight: 900; margin-top:25px;'>🪐 SUNICFLOW STUDIO</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #00f2fe; font-size: 0.8rem; letter-spacing: 5px; margin-bottom: 35px;'>EL DAW GENERATIVO DE VANGUARDIA DE LA ERA SÚPER-INTELIGENTE</p>", unsafe_allow_html=True)
 
+# 📁 INICIALIZACIÓN DE LA BASE DE DATOS LOCAL (SISTEMA DE BIBLIOTECA PERSISTENTE)
 if "db_tracks" not in st.session_state:
     st.session_state.db_tracks = [
-        {"nombre": "Esquinas Oscuras (Trap Urbano CL)", "fecha": "08/2026", "perfil": "Flaite Urbano", "tipo": "Remix / Cover"},
-        {"nombre": "Sinfonía del Puerto (Neutro Mix)", "fecha": "08/2026", "perfil": "Neutro Chileno", "tipo": "Pure Instrumental"}
+        {"nombre": "Esquinas Oscuras (Trap Urbano CL)", "fecha": "08/09/2026", "perfil": "Flaite Urbano", "tipo": "Remix / Cover"},
+        {"nombre": "Sinfonía del Puerto (Neutro Mix)", "fecha": "08/09/2026", "perfil": "Neutro Chileno", "tipo": "Pure Instrumental"}
     ]
 
 if "chat_reverb" not in st.session_state:
@@ -91,7 +108,7 @@ with tab_create:
     with col1:
         st.markdown("<div class='sunic-rack'><div class='hardware-label'><span>CH 01 // COMPOSITION BUS</span><span>v6.0 SUPREME</span></div></div>", unsafe_allow_html=True)
         st.markdown("<div class='lcd-screen'>[SUNICFLOW CORE ACTIVE]<br>GENERATION MAX: 8 MINUTES TOTAL</div>", unsafe_allow_html=True)
-        prompt_musica = st.text_area("Describa la Instrumentación de Fondo (Prompt):", placeholder="Ej: Ritmo de Reggaeton pesado mezclado con guitarras...")
+        prompt_musica = st.text_area("Describa la Instrumentación de Fondo (Prompt):", placeholder="Ej: Ritmo de Reggaeton pesado mezclado con guitarras...", key="txt_prompt")
         
         st.markdown("<p style='font-size:0.75rem; color:#00ffcc; font-weight:bold;'>✍️ LYRICS MANAGER / MOTOR DE LÍRICAS:</p>", unsafe_allow_html=True)
         tipo_ingreso_letra = st.radio("Tipo de Escritura:", ["Caja de Escritura Manual", "Generador Automático Coa/Urbano"], horizontal=True)
@@ -137,20 +154,11 @@ with tab_create:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# 🔌 PROCESADOR INTERNO GENERATIVO SEGURO (CON GENERACIÓN DE BYTES NATIVA)
+# 🔌 PROCESADOR INTERNO GENERATIVO SEGURO CON REPRODUCTOR REMOTO EN HTML5 CON PERMISOS MÓVILES
 if st.button("🔌 TRANSMITIR SEÑAL Y COMPILAR EN S_FLOW", use_container_width=True):
     st.success("🪐 COMPOSICIÓN Y TRATAMIENTO COMPLETADOS CON ÉXITO")
     
-    st.markdown("<div class='sunic-rack' style='border-color: #10b981; background: #05070f;'><div class='hardware-label' style='color:#10b981;'><span>STEREO MONITOR LIVE // DIGITAL MASTER OUT</span><span>AUDIO READY</span></div></div>", unsafe_allow_html=True)
-    
-    # GENERADOR BINARIO PURO NATIVO DE PYTHON (SIN SUB-LIBRERÍAS DE AUDIO DEPENDIENTES)
-    sample_rate = 22050
-    duracion = 3
-    t = np.linspace(0, duracion, sample_rate * duracion, endpoint=False)
-    
-    # Síntesis armónica digital de ondas
-    onda_sub = np.sin(2 * np.pi * 60 * t) * 0.4
-    onda_synth = np.sin(2 * np.pi * 240 * t) * 0.2
-    onda_mix = onda_sub + onda_synth
-    audio_int16 = np.int16(onda_mix * 32767)
-    
+    # AGREGAR AUTOMÁTICAMENTE LA CANCIÓN A LA BIBLIOTECA AL PRESIONAR EL BOTÓN
+    nuevo_nombre = prompt_musica if prompt_musica else "Nueva Mezcla Generada"
+    st.session_state.db_tracks.insert(0, {
+        "nombre": nuevo_nombre[:30] + "...",
