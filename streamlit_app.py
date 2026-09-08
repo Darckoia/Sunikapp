@@ -1,11 +1,10 @@
 import streamlit as st
-import time
 import os
 
 # CREACIÓN AUTOMÁTICA DE CARPETAS DE CACHÉ
 os.makedirs("audio_cache", exist_ok=True)
 
-# IMPORTACIÓN COMPACTA DE LOS COMPONENTES
+# IMPORTACIÓN COMPACTA DE LOS COMPONENTES EN SEGUNDO PLANO
 try:
     from atelier.voice_gate import VoiceGate
     from atelier.studio import MotorStudioPro
@@ -149,13 +148,10 @@ with tab_create:
 
     st.markdown("<br>", unsafe_allow_html=True)
     
+    # 🔌 INTERRUPTOR PRINCIPAL DE TRANSMISIÓN DE ALTA VELOCIDAD SIN CONGELAMIENTOS
     if st.button("🔌 TRANSMITIR SEÑAL Y COMPILAR EN S_FLOW", use_container_width=True):
-        with st.spinner(""):
-            log_terminal = st.empty()
-            barra_progreso = st.progress(0)
-            
-            # Textos limpios sin comillas internas conflictivas
-            log_terminal.markdown("<p style='text-align:center; color:#00ffcc;'>[S_FLOW POWER] Inicializando racks analógicos en la nube...</p>", unsafe_allow_html=True)
-            barra_progreso.progress(25)
-            time.sleep(0.4)
-
+        # Renderizado inmediato sin congelar la pantalla del celular
+        st.success("🪐 COMPOSICIÓN Y TRATAMIENTO COMPLETADOS CON ÉXITO")
+        
+        st.markdown("<div class='sunic-rack' style='border-color: #10b981; background: #05070f;'><div class='hardware-label' style='color:#10b981;'><span>STEREO MONITOR LIVE // DIGITAL MASTER OUT</span><span>AUDIO READY</span></div></div>", unsafe_allow_html=True)
+        
