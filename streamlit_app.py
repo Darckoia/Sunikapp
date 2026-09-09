@@ -3,6 +3,7 @@ import numpy as np
 import os
 from io import BytesIO
 import wave
+import base64
 
 # 1. ARQUITECTURA DE DISEÑO: SUNIKFLOW ADVANCED v5.5 INTERFACE
 st.set_page_config(
@@ -223,7 +224,13 @@ for track in st.session_state.db_tracks:
     st.markdown(f"""
         <div class='social-card'>
             <div style='display: flex; gap: 15px; align-items: center;'>
-                <div style='width: 45px; height: 45px; background: linear-gradient(135deg, #ff007f 0%, #00f2fe 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.2rem;'>💿</div>
+                <div style='width: 45px; height: 45px; background: linear-gradient(135deg, #ff007f 0%, #00f2fe 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center;'>
+                    <span style='font-size: 1.5rem;'>🎵</span>
+                </div>
                 <div>
                     <b style='color:#00ffcc; font-size:1rem;'>{track['nombre']}</b><br>
                     <small style='color:#64748b;'>Fecha: {track['fecha']} | Estilo: {track['perfil']} | Modelo: {track['tipo']}</small><br>
+                </div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
