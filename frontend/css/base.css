@@ -1,0 +1,6 @@
+body { margin:0; font-family: Inter, Arial, sans-serif; background:var(--bg); color:var(--text); }
+.hero { padding:2rem; background:linear-gradient(135deg,var(--primary),var(--secondary)); }
+main, nav { padding:1rem 2rem; }
+textarea,input,button { width:100%; margin:.5rem 0; padding:.65rem; border-radius:.5rem; border:1px solid #2a3158; background:#1A1F3A; color:#fff; }
+button { background:linear-gradient(90deg,var(--primary),var(--accent)); cursor:pointer; }
+a { color: var(--secondary); }

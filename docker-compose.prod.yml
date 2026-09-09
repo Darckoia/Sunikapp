@@ -1,0 +1,7 @@
+services:
+  sunikflow:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.prod
+    ports:
+      - "8000:8000"
