@@ -3,7 +3,6 @@ import numpy as np
 import os
 from io import BytesIO
 import wave
-import base64
 
 # 1. ARQUITECTURA DE DISEÑO: SUNIKFLOW ADVANCED v5.5 INTERFACE
 st.set_page_config(
@@ -101,6 +100,17 @@ if "db_tracks" not in st.session_state:
 
 # MOTOR DE AUDIO NATIVO BINARIO SINTETIZADO REPARADO
 def generar_synth_beat(style_text, duracion=4.0, sr=22050):
+    """
+    Genera un beat sintetizado basado en el estilo de texto proporcionado.
+    
+    Args:
+        style_text (str): Descripción del estilo deseado
+        duracion (float): Duración en segundos (default: 4.0)
+        sr (int): Sample rate en Hz (default: 22050)
+    
+    Returns:
+        bytes: Datos de audio WAV
+    """
     t = np.linspace(0, duracion, int(sr * duracion), endpoint=False)
     texto = (style_text or "").lower()
 
