@@ -1,0 +1,181 @@
+/* Studio Page Styles */
+
+.studio-container {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    height: calc(100vh - 60px);
+    gap: 1px;
+    background-color: var(--border);
+}
+
+.sidebar {
+    background-color: var(--bg-surface);
+    overflow-y: auto;
+    padding: 1.5rem;
+    border-right: 1px solid var(--border);
+}
+
+.sidebar-section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.sidebar-section:last-child {
+    border-bottom: none;
+}
+
+.sidebar-section h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.project-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.studio-main {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-dark);
+    overflow: hidden;
+}
+
+.studio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background-color: var(--bg-surface);
+}
+
+.controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.studio-workspace {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Player Section */
+.player-section {
+    background-color: var(--bg-surface);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+.player-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.waveform-container {
+    width: 100%;
+    height: 150px;
+    background-color: var(--bg-dark);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+#waveformCanvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* Spectrum Section */
+.spectrum-section {
+    background-color: var(--bg-surface);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+.spectrum-section h3 {
+    margin-bottom: 1rem;
+}
+
+#spectrumCanvas {
+    width: 100%;
+    height: 150px;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+}
+
+/* Tracks Section */
+.tracks-section {
+    background-color: var(--bg-surface);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+.tracks-section h3 {
+    margin-bottom: 1rem;
+}
+
+.tracks-list {
+    margin-bottom: 1rem;
+}
+
+.track-item {
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.track-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.track-name {
+    font-weight: 500;
+}
+
+.track-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.track-controls .slider {
+    width: 100px;
+}
+
+@media (max-width: 1024px) {
+    .studio-container {
+        grid-template-columns: 200px 1fr;
+    }
+
+    .sidebar {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .studio-container {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    .sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+}

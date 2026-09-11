@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio - SUNIKFLOW</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/studio.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="logo">
+                <span class="logo-icon">🎵</span>
+                <span class="logo-text">SUNIKFLOW</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="studio.html" class="active">Studio</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="projects.html">Projects</a></li>
+                <li><a href="settings.html">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="studio-container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3>Project</h3>
+                <div class="project-info">
+                    <input type="text" placeholder="Project name" class="input-text" id="projectName" value="Untitled Project">
+                    <button class="btn btn-small btn-primary">Save</button>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Synthesis</h3>
+                <div class="control-group">
+                    <label>Frequency (Hz)</label>
+                    <input type="range" min="20" max="20000" value="440" class="slider" id="frequency">
+                    <span id="frequencyValue">440</span>
+                </div>
+                <div class="control-group">
+                    <label>Duration (s)</label>
+                    <input type="number" min="0.1" max="60" value="5" class="input-text" id="duration">
+                </div>
+                <button class="btn btn-primary" onclick="generateAudio()">Generate</button>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Effects</h3>
+                <div class="control-group">
+                    <label>Reverb</label>
+                    <input type="range" min="0" max="100" value="0" class="slider" id="reverb">
+                </div>
+                <div class="control-group">
+                    <label>Delay</label>
+                    <input type="range" min="0" max="100" value="0" class="slider" id="delay">
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Export</h3>
+                <button class="btn btn-success" onclick="exportWAV()">Export WAV</button>
+                <button class="btn btn-success" onclick="exportMP3()">Export MP3</button>
+            </div>
+        </aside>
+
+        <main class="studio-main">
+            <div class="studio-header">
+                <h1>Audio Studio</h1>
+                <div class="controls">
+                    <button class="btn btn-small">New</button>
+                    <button class="btn btn-small">Open</button>
+                    <button class="btn btn-small">Save</button>
+                </div>
+            </div>
+
+            <div class="studio-workspace">
+                <div class="player-section">
+                    <div class="player-controls">
+                        <button id="playBtn" class="btn btn-icon">▶️</button>
+                        <button id="stopBtn" class="btn btn-icon">⏹️</button>
+                        <input type="range" min="0" max="100" value="0" class="slider" id="playbackPosition">
+                        <span id="playbackTime">0:00</span>
+                    </div>
+                    <div class="waveform-container">
+                        <canvas id="waveformCanvas" width="800" height="150"></canvas>
+                    </div>
+                </div>
+
+                <div class="spectrum-section">
+                    <h3>Frequency Spectrum</h3>
+                    <canvas id="spectrumCanvas" width="800" height="150"></canvas>
+                </div>
+
+                <div class="tracks-section">
+                    <h3>Tracks</h3>
+                    <div class="tracks-list" id="tracksList">
+                        <div class="track-item">
+                            <div class="track-header">
+                                <span class="track-name">Track 1</span>
+                                <div class="track-controls">
+                                    <input type="range" min="0" max="100" value="80" class="slider" title="Volume">
+                                    <button class="btn btn-small">🔇</button>
+                                    <button class="btn btn-small">📍</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-small btn-primary" onclick="addTrack()">+ Add Track</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/studio.js"></script>
+</body>
+</html>

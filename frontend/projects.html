@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - SUNIKFLOW</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/projects.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="logo">
+                <span class="logo-icon">🎵</span>
+                <span class="logo-text">SUNIKFLOW</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="studio.html">Studio</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="projects.html" class="active">Projects</a></li>
+                <li><a href="settings.html">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="projects-container">
+        <div class="projects-header">
+            <h1>Projects</h1>
+            <button class="btn btn-primary" onclick="createNewProject()">+ New Project</button>
+        </div>
+
+        <div class="projects-grid" id="projectsGrid">
+            <!-- Project cards will be generated here -->
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <p>No projects yet</p>
+            <p class="text-muted">Create your first project to organize your work</p>
+            <button class="btn btn-primary" onclick="createNewProject()">Create Project</button>
+        </div>
+    </main>
+
+    <script src="js/projects.js"></script>
+</body>
+</html>
